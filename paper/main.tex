@@ -266,7 +266,10 @@ dev ($n{=}59$: 22 RET / 30 GEN / 7 INT) and test ($n{=}61$: 23 RET / 30 GEN /
 8 INT), so every fault class is proportionally represented and the test
 split is touched once after thresholds are frozen. A dataset card
 (\texttt{data/faultbench/README.md}) and manifest record balance and
-construction hashes.
+construction hashes. Crucially, the attribution rule never sees fault
+identities---only $(c_0,c_1,c_2,R)$---so the benchmark validates the
+mapping from observable behavior to failure-source labels rather than the
+rule's knowledge of the injector.
 
 \section{Experimental Setup}
 \textbf{System.} Retriever: TF-IDF cosine over each question's 5-chunk pool
@@ -285,13 +288,24 @@ test evaluation (pre-registration step; the freeze file records the sweep).
 \textbf{Baselines.} (a) \emph{recall-threshold}: label from $R$ vs.\ $\tau_R$
 only; (b) \emph{metric-rule}: $R$ plus a grounding-overlap proxy with
 threshold $\gamma$ tuned on dev (RAGChecker-inspired, not their package);
-(c) \emph{LLM-as-diagnoser}: one prompt describing the observed behavior,
-free to introspect (live calls, one per test item).
+(c) \emph{LLM-as-diagnoser}: one prompt given the question, retrieved
+context, system answer, and reference answer, free to introspect (live
+calls, one per test item). The two approaches see complementary
+information: rule~v1 consumes the three-condition EM outcomes and $R$ but
+never the texts, while the diagnoser reads the texts but never sees
+$c_0,c_1,c_2$ or $R$; neither has access to fault identities or dev labels
+at test time.
 
 \textbf{Statistics.} 10{,}000-sample bootstrap 95\% CIs (seed 0); McNemar
 exact tests on paired correctness with Holm correction; macro-F1 and
 per-class precision/recall/F1 reported alongside accuracy because class
-balance is controlled but not uniform.
+balance is controlled but not uniform; the INTERACTION class in particular
+has only 7 dev / 8 test instances, so its per-class figures are descriptive
+with wide uncertainty. Robustness, multi-model, and utility analyses
+(Secs.~\ref{sec:robust}--\ref{sec:utility}) re-analyze test-split records
+without tuning any parameter: degradation reuses frozen predictions, repairs
+are fixed heuristics, and the only tuned quantities ($\tau_R$, $\gamma$)
+were frozen on dev before test was first touched.
 
 \subsection{Judge calibration}
 \label{sec:judge}
@@ -419,9 +433,19 @@ cross-dataset transfer, and human-annotated natural-failure labels.
 \subsection{Prompts}
 All conditions share one template (context block substituted); the base
 condition omits it; the grounding repair adds a strict-grounding system
-message (reply \texttt{CANNOT ANSWER} when unsupported). Exact prompt files
-live in \texttt{src/ragdx/} (answer, judge, diagnoser) and are reproduced in
-the repository.
+message (answer only from the context, otherwise reply exactly
+\texttt{CANNOT ANSWER}). The diagnoser baseline prompt reads: ``You are an
+expert analyst of retrieval-augmented generation systems. You will see a
+QUESTION, the RETRIEVED CONTEXT the system used, the SYSTEM ANSWER, and the
+REFERENCE ANSWER. Decide where the failure came from, assuming the system
+answered incorrectly: RETRIEVER (the needed fact is absent from the
+context), GENERATOR (the context contains it but the system ignored or
+misread it), INTERACTION (the context contains the correct information AND
+a plausible conflicting or distracting statement), NONE (the answer is
+actually correct),'' with a JSON-only reply instruction; the judge prompt
+asks for a \{verdict, confidence, rationale\} JSON. All prompt files live
+in \texttt{src/ragdx/llm/prompts/} and are reproduced verbatim in the
+released repository.
 
 \subsection{Hyperparameters}
 $\tau_R$: dev-sweep $\{0.1,\dots,0.9\}$ maximizing dev macro-F1, frozen
