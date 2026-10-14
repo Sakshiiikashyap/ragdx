@@ -49,6 +49,17 @@ def holm_correction(p_values: dict[str, float]) -> dict[str, float]:
     return adjusted
 
 
+def cohen_kappa(a: list[str], b: list[str]) -> float:
+    """Cohen's kappa between two labelings (P6: attribution stability)."""
+    if len(a) != len(b) or not a:
+        raise ValueError("label lists must be non-empty and equal length")
+    n = len(a)
+    labels = sorted(set(a) | set(b))
+    po = sum(x == y for x, y in zip(a, b)) / n
+    pe = sum((a.count(l) / n) * (b.count(l) / n) for l in labels)
+    return (po - pe) / (1.0 - pe) if pe < 1.0 else 1.0
+
+
 def macro_f1(truth: list[str], pred: list[str]) -> float:
     labels = sorted(set(truth) | set(pred))
     f1s = []

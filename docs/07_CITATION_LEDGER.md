@@ -3,8 +3,11 @@
 |---|---|---|---|---|
 | park2025mirage | Park et al., MIRAGE, Findings NAACL 2025 | [x] 2026-10-14 | arxiv 2504.17137 + github.com/nlpai-lab/MIRAGE | Metric definitions (EM-loose/strict, token-F1, NV/CA/CI/CM + elif priority order) copied exactly from upstream LLM.py / evaluation.py into src/ragdx/metrics/; docstrings cite source file+method |
 | murugaraj2026ragvue | RAGVUE, EACL 2026 demos | [x] 2026-10-14 | aclanthology.org/2026.eacl-demo.35 | CONFIRMED: EACL 2026 System Demonstrations, pp. 512–526, Rabat, DOI 10.18653/v1/2026.eacl-demo.35; arxiv 2601.04196 |
-| sorodoc2025garage | GaRAGe, Findings ACL 2025 | [ ] | | TODO: verify author/venue (Phase 0 remaining) |
-| ru2024ragchecker | RAGChecker, NeurIPS 2024 D&B | [ ] | arxiv 2408.08067 | TODO: confirm venue + authors (Phase 0 remaining) |
+| sorodoc2025garage | GaRAGe, Findings ACL 2025 | [x] 2026-10-15 | aclanthology.org/2025.findings-acl.875 + arxiv 2506.07671 | CONFIRMED: Sorodoc, Ribeiro, Blloshmi, Davis, de Gispert; Findings ACL 2025, pp. 17030-17049, Vienna; DOI 10.18653/v1/2025.findings-acl.875 |
+| ru2024ragchecker | RAGChecker, NeurIPS 2024 D&B | [x] 2026-10-15 | proceedings.neurips.cc/paper_files/paper/2024 (hash 27245589...) + arxiv 2408.08067 | CONFIRMED: Ru, Qiu, Hu, Zhang, Shi, Chang, Jiayang, Wang, Sun, Li, Zhang, Wang, Jiang, He, Wang, Liu, Zhang, Zhang; NeurIPS 37 (2024) Datasets and Benchmarks Track |
+| es2024ragas | RAGAS, EACL 2024 System Demonstrations | [x] 2026-10-15 | aclanthology.org/2024.eacl-demo.16 + arxiv 2309.15217 | CONFIRMED: Es, James, Espinosa-Anke, Schockaert; EACL 2024 Demo, pp. 150-158; DOI 10.18653/v1/2024.eacl-demo.16 |
+| liu2024lost | Lost in the Middle, TACL 2024 | [x] 2026-10-15 | aclanthology.org/2024.tacl-1.9 + arxiv 2307.03172 | CONFIRMED: Liu, Lin, Hewitt, Paranjape, Bevilacqua, Petroni, Liang; TACL vol 12, pp. 157-173; DOI 10.1162/tacl_a_00638 |
+| zheng2023mtbench | MT-Bench/Chatbot Arena, NeurIPS 2023 D&B | [x] 2026-10-15 | proceedings.neurips.cc (hash 91f18a12...) + arxiv 2306.05685 | CONFIRMED: Zheng, Chiang, Sheng, Zhuang, Wu, Zhuang, Lin, Li, Li, Xing, Zhang, Gonzalez, Stoica; NeurIPS 36 (2023) Datasets and Benchmarks Track |
 | zou2025seara | SEARA, EMNLP 2025 Industry | [x] 2026-10-14 | 2025.emnlp.org/program/ind_papers | CONFIRMED: "SEARA: An Automated Approach for Obtaining Optimal Retrievers", Zou Yuheng, EMNLP 2025 Industry Track |
 | sahu2026mirage_gen | MiRAGE (Sahu et al.) from concept PDF | [ ] | | NOT in synopsis; verify exists or drop — do not cite until confirmed |
 

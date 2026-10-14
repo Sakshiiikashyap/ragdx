@@ -2,71 +2,479 @@
 \IEEEoverridecommandlockouts
 \usepackage{cite,amsmath,amssymb,amsfonts,booktabs,graphicx,url}
 \usepackage[utf8]{inputenc}
-\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+\usepackage[T1]{fontenc}
+\usepackage{mathptmx}
 \usepackage{xcolor}
+\usepackage{multirow}
+\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+\newcommand{\ok}[1]{\textcolor{green}{#1}}
 
 \begin{document}
 
 \title{Attributing RAG Failures to Retriever or Generator:\\
 Controlled-Condition Diagnosis with Validated Ground Truth}
 
-\author{\IEEEauthorblockN{Anonymous}
-\IEEEauthorblockA{Institution withheld for review}}
+\author{\IEEEauthorblockN{Sakshi Kashyap}
+\IEEEauthorblockA{Independent research project\\
+\texttt{sakshiiikashyap50@gmail.com}}}
 
 \maketitle
 
 \begin{abstract}
-Retrieval-augmented generation (RAG) systems fail for heterogeneous reasons---retrieval miss, generator misuse of good context, or interaction effects---yet end-to-end accuracy conflates them. We present a controlled-condition attribution method that diagnoses the failure source of each question by comparing answer correctness under three conditions: no context, gold context, and real retrieval, combined with retrieval recall. Our method emits an explicit abstention and an evidence record, supporting a risk--coverage analysis. We release RAG-FaultBench, a fault-injected benchmark with known failure-source labels. On a MIRAGE subset with a TF-IDF retriever and an open-weight generator, we report \todo{numbers pending the final run} attribution outcomes with a dominance of interaction (distractor) failures. All reported numbers are generated from \texttt{results/} artifacts by reproducible scripts.
-\todo{abstract numbers finalized after exp03--exp05 (fault injection, baselines, judge calibration).}
+Retrieval-augmented generation (RAG) systems fail for heterogeneous
+reasons---retrieval miss, generator misuse of good context, or interaction
+effects---yet end-to-end accuracy conflates them. We present a
+controlled-condition attribution method that diagnoses the failure source of
+each question by comparing answer correctness under three conditions (no
+context, gold context, real retrieval) combined with retrieval recall, and we
+release \textsc{Rag-FaultBench}, a fault-injected benchmark with known
+failure-source labels (120 questions, 8 injectors, dev/test split) used to
+\emph{validate} attribution itself. On a MIRAGE subset with a TF-IDF retriever
+and an open-weight generator, our pilot establishes the measurement apparatus:
+answer accuracy is 0.30 (no context), 0.88 (gold), 0.46 (retrieved), and an
+LLM judge agrees with exact match on 97.3\% of 150 verdicts (and corrects 3
+of its false negatives) but is severely overconfident (ECE 0.43), so we treat
+it as a rescue mechanism rather than a probability source.
+\todo{main-study attribution accuracy vs.\ baselines, robustness, and
+multi-model numbers pending exp03--exp08 finalization; all tables and figures
+are generated from \texttt{results/} artifacts by committed scripts.}
 \end{abstract}
 
 \begin{IEEEkeywords}
-retrieval-augmented generation, failure attribution, evaluation, diagnosis
+retrieval-augmented generation, failure attribution, evaluation, diagnosis,
+fault injection
 \end{IEEEkeywords}
 
 \section{Introduction}
-End-to-end accuracy hides \emph{why} a RAG system failed. A wrong answer can come from the retriever (gold evidence absent), the generator (gold evidence present but ignored or misread), or their interaction (distracting near-miss evidence). Existing metric frameworks quantify quality but do not, per question, assign a failure source with calibrated uncertainty.
+End-to-end accuracy hides \emph{why} a RAG system failed. A wrong answer can
+come from the retriever (gold evidence absent or irrelevant), from the
+generator (gold evidence present but ignored, misread, or contradicted by
+position effects~\cite{liu2024lost}), or from their interaction (distracting
+near-miss evidence). Existing evaluation frameworks quantify RAG quality at
+the system or metric level---adaptability scores~\cite{park2025mirage},
+module-level diagnostics~\cite{ru2024ragchecker}, reference-free dimension
+scores~\cite{es2024ragas}, grounding annotations~\cite{sorodoc2025garage},
+or diagnostic dashboards~\cite{murugaraj2026ragvue}---but they do not, for an
+\emph{individual question}, assign a failure source with an explicit
+abstention and an evidence record. Without such labels, remediation is
+guesswork: improving the retriever cannot fix a generator that ignores
+context, and vice versa.
 
-\noindent\textbf{Contributions.} (i) A formal attribution framework over three controlled conditions with abstention and an evidence record; (ii) RAG-FaultBench, a fault-injected benchmark with ground-truth failure sources; (iii) an empirical comparison against recall-threshold and metric-rule baselines; (iv) an open-source tool (ragdx) with a read-only diagnosis dashboard.
+We study a minimal, auditable answer: run the same question under three
+\emph{controlled conditions}---no context ($c_0$), gold context ($c_1$), and
+real retrieved context ($c_2$)---measure the gold recall $R$ of the retrieved
+set, and map $(c_0,c_1,c_2,R)$ to a failure-source label
+(\textsc{Retriever}, \textsc{Generator}, \textsc{Interaction}, \textsc{None},
+plus explicit \textsc{Abstain}/\textsc{Anomaly} outcomes). Because the
+prescription presupposes a trustworthy gold reference, we validate it where
+it can be falsified: on \textsc{Rag-FaultBench}, where controlled faults with
+\emph{known} failure sources are injected into the pipeline, and we
+additionally stress the method itself by degrading the gold reference
+(Sec.~\ref{sec:robust}).
+
+\textbf{Research questions.} RQ1: how accurately does controlled-condition
+attribution recover known failure sources? RQ2: does it beat simple
+baselines (recall-threshold, metric-rule, LLM-as-diagnoser)? RQ3 (lite): how
+robust is it to imperfect gold references and judge noise? RQ4 (lite): does
+it transfer across generator models? RQ5 (lite): do the triggered repairs
+actually fix failures?
+
+\textbf{Contributions.} (i) A formal attribution framework over three
+controlled conditions, with abstention, an evidence record, and a
+probabilistic variant (rule v2); (ii) \textsc{Rag-FaultBench}: 120
+fault-injected instances with ground-truth failure sources, injected by 8
+deterministic injectors; (iii) an empirical protocol---dev-only threshold
+tuning, frozen before test, bootstrap CIs and McNemar tests with Holm
+correction---and the corresponding open-source implementation
+(\texttt{ragdx}, 129 offline unit tests); (iv) an honest measurement of where
+the method breaks: a blind spot for faults that also degrade the gold
+condition, quantified under gold-degradation and judge-noise sweeps.
+
+\section{Related Work}
+\textbf{RAG benchmarks.} MIRAGE~\cite{park2025mirage} provides 7,560
+curated queries over a 37,800-chunk retrieval pool with component-oriented
+adaptability metrics (noise vulnerability, context acceptability,
+insensitivity, misinterpretation); we reuse its pools, questions, and EM
+criteria. GaRAGe~\cite{sorodoc2025garage} adds human-curated long-form
+answers with per-passage grounding annotations and shows attribution F1 to
+relevant sources is at most 58.9\% for evaluated LLMs---evidence that
+grounding behavior itself is hard, which motivates isolating failure
+\emph{sources} rather than only scoring outputs.
+
+\textbf{Metric frameworks.} RAGChecker~\cite{ru2024ragchecker} derives
+claim-level retrieval/generation diagnostics that correlate with human
+judgments; RAGAS~\cite{es2024ragas} provides reference-free faithfulness,
+answer-relevance, and context-relevance scores; RAGVUE~\cite{murugaraj2026ragvue}
+surfaces fine-grained failures (retrieval, reasoning, grounding) that
+score-based tools overlook. All operate at the metric level; none emits a
+per-question failure-source label with abstention, and none validates its
+diagnoses against injected ground truth. Our metric-rule baseline is
+\emph{inspired by} RAGChecker's division of labor (retrieval vs.\ generation
+metrics) but is not their released package.
+
+\textbf{Retriever evaluation without gold.} SEARA~\cite{zou2025seara}
+constructs pseudo-ground truth by pooling chunks recalled by candidate
+retrievers and scores them with PR-AUC. This is complementary: it removes
+gold requirements for \emph{retriever comparison}, while we measure how
+\emph{attribution} degrades when the gold reference is imperfect
+(Sec.~\ref{sec:robust}).
+
+\textbf{Judge reliability.} LLM-as-a-judge is widely used because strong
+judges reach $>$80\% agreement with human
+preferences~\cite{zheng2023mtbench}; we calibrate our judge against exact
+match and report its overconfidence (Sec.~\ref{sec:judge}) rather than
+assuming it.
+
+\begin{table}[t]
+\caption{Positioning: per-question failure-source attribution with validated
+ground truth and abstention (T1).}
+\label{tab:positioning}
+\small
+\begin{tabular}{lccccc}
+\toprule
+Framework & src.\ label & gold ref. & validated GT & abstain \\
+\midrule
+MIRAGE~\cite{park2025mirage} & -- & yes & -- & -- \\
+RAGAS~\cite{es2024ragas} & -- & no & -- & -- \\
+RAGChecker~\cite{ru2024ragchecker} & -- & yes & meta & -- \\
+GaRAGe~\cite{sorodoc2025garage} & -- & yes & human & -- \\
+RAGVUE~\cite{murugaraj2026ragvue} & -- & yes & -- & -- \\
+SEARA~\cite{zou2025seara} & -- & no & -- & -- \\
+\textbf{Ours} & \textbf{yes} & partial & \textbf{yes} & \textbf{yes} \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \section{Problem Formulation}
-For question $q$, let $c_0, c_1, c_2 \in \{0,1\}$ denote answer correctness under no-context, gold-context, and real-retrieval conditions, and $R$ the gold recall@k of the retrieved set. Attribution maps $(c_0, c_1, c_2, R)$ to a label in \{\textsc{Retriever}, \textsc{Generator}, \textsc{Interaction}, \textsc{None}, \textsc{Question-Issue}, \textsc{Anomaly}, \textsc{Abstain}\}. Attribution is evidence-based diagnosis, not a causal proof; causal validation is deferred to the intervention study (exp08).
+For question $q$ with reference answers $A(q)$ and a candidate context $D$,
+let $c(D;q)=1$ if the generated answer $a(D)$ is correct under the MIRAGE
+EM-loose criterion (any $a\in A(q)$ appears as a normalized substring of the
+answer)~\cite{park2025mirage}. We observe the triple
+$c_0=c(\varnothing;q)$, $c_1=c(D_{\text{gold}};q)$, $c_2=c(D_{\text{ret}};q)$
+and the chunk-level gold recall $R=\mathrm{recall@}k$ of the retrieved set
+against the gold chunk. Attribution is the map
+$g:(c_0,c_1,c_2,R)\rightarrow L$ with
+$L\in\{\textsc{Retriever},\textsc{Generator},\textsc{Interaction},
+\textsc{None},\textsc{Question-Issue},\textsc{Anomaly},\textsc{Abstain}\}$.
+Attribution is evidence-based diagnosis, not a causal proof; the repair
+study (Sec.~\ref{sec:utility}) provides the intervention-style check that
+diagnosis-\\matched repairs outperform mismatched ones.
 
 \section{Method}
 \subsection{Three-condition protocol}
-For each question we generate answers with (a) no context, (b) the gold chunk, (c) top-$k$ retrieved chunks, holding the generator and decoding fixed ($T=0$). Correctness uses the MIRAGE EM-loose criterion (any reference answer as substring)~\cite{park2025mirage}.
+Each question is answered under three conditions with the generator and
+decoding held fixed ($T=0$): no context; the gold chunk; the top-$k$
+retrieved chunks from the question's retrieval pool. Correctness uses
+EM-loose; all prompts are identical except the context block. An optional
+LLM judge (temperature 0, JSON schema) is consulted only when EM fails, as a
+rescue mechanism (Sec.~\ref{sec:judge}).
 
-\subsection{Attribution rule v1}
-\todo{decision table figure pending final spec sign-off.} The deterministic rule assigns labels in priority order: retrieval success implies \textsc{None} (flagging parametric knowledge if the base condition already succeeded); gold-succeeds/retrieved-fails splits into \textsc{Retriever} ($R < \tau_R$) vs.\ \textsc{Interaction} ($R \ge \tau_R$); base-succeeds/gold-fails implies \textsc{Generator} (context misinterpretation); all-fail implies \textsc{Generator}, downgraded to \textsc{Question-Issue} when the gold audit flags insufficient gold. A more specific ``retrieval-only success'' pattern is labelled \textsc{Anomaly} (judge noise or lucky guess).
+\subsection{Retrieval recall at chunk level}
+In MIRAGE pools, all five chunks of a question share one document-level id,
+so document-level recall is degenerate (always 1). We therefore identify the
+gold chunk by exact text match against the oracle and compute recall over
+chunk-level identifiers tracked through any pool modification. This
+identification is load-bearing for every retriever-side fault and is covered
+by regression tests.
 
-\subsection{Probabilistic rule v2 (planned)}
-\todo{rule v2 (Wilson-CI, abstention, risk--coverage) ships in Phase 3; not in this pilot.}
+\subsection{Attribution rule v1 (deterministic)}
+Applied in priority order (implemented exactly as in
+Table~\ref{tab:rule}); $\tau_R$ is tuned on the dev split only and frozen
+before test.
 
-\section{RAG-FaultBench \& Annotation (planned)}
-\todo{fault-injection catalogue and human-annotated subset land in Phase 2 (docs/03); this pilot contains no injected faults.}
+\begin{table}[t]
+\caption{Rule v1 decision table (exact implementation semantics).}
+\label{tab:rule}
+\small
+\begin{tabular}{clll}
+\toprule
+\# & condition & label & rationale \\
+\midrule
+1 & $c_0{=}0,c_1{=}0,c_2{=}1$ & \textsc{Anomaly} & judge noise / lucky guess \\
+2 & $c_2{=}1$ (else) & \textsc{None} & retrieval worked \\
+3 & $c_1{=}1,c_2{=}0,R{<}\tau_R$ & \textsc{Retriever} & gold absent \\
+4 & $c_1{=}1,c_2{=}0,R{\ge}\tau_R$ & \textsc{Interaction} & distracted \\
+5 & $c_0{=}1,c_1{=}0$ & \textsc{Generator} & gold broke answer \\
+6 & $c_0{=}0,c_1{=}0,c_2{=}0$ & \textsc{Generator} & fails with gold \\
+6b & \ \ + gold-audit insufficient & \textsc{Question-Issue} & bad gold \\
+7 & else / $R$ missing & \textsc{Abstain} & no evidence \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-\section{Experimental Setup (pilot)}
-Datasets: MIRAGE~\cite{park2025mirage} subset ($n=50$, first 50 questions of the HF \texttt{train} split); retriever: TF-IDF cosine top-1 over the per-question 5-chunk pool; generator: \texttt{openai/gpt-oss-20b} via Groq at $T=0$; judge: EM-loose; thresholds: $\tau_R=0.5$ (pre-registered, not tuned). The run consumed 93{,}706 tokens for one generation pass; the recall-corrected analysis re-used all 150 cached answers (no new API calls). All artifacts live in \texttt{results/exp01/} (items, summary, manifest with git + config hashes).
+Row~1 takes precedence over the general ``$c_2{=}1\Rightarrow$\textsc{None}''
+row so that \textsc{Anomaly} remains reachable; this resolves an overlap in
+the upstream specification and is recorded as an explicit decision. Rule~1
+flags \emph{parametric} answers ($c_0{=}1$) inside \textsc{None}'s evidence
+dict. Case 7 triggers when $R$ is unavailable for the
+\textsc{Retriever}/\textsc{Interaction} split.
 
-\section{Results (pilot)}
-All numbers below are generated from \texttt{results/exp01/summary.json} via \texttt{analysis/tables.py} (auto-generated table in \texttt{paper/tables/exp01\_summary.tex}). Answer accuracy is 0.30 (base), 0.88 (gold), and 0.46 (retrieved). MIRAGE system metrics: NV $=0.42$, CA $=0.46$, CI $=0.08$, CM $=0.04$. Attribution with rule v1 distributes as NONE 23/50 (46\%), RETRIEVER 21/50 (42\%), GENERATOR 6/50 (12\%). Mean chunk-level gold recall@1 is 0.46.
+\subsection{Probabilistic rule v2 and abstention}
+Rule v2 replaces single-shot bits with $k$-sample per-condition correctness
+rates $p_0,p_1,p_2$. Wilson score intervals bound each $p_i$; the
+difference $p_1-p_2$ uses a normal-approximation (Wald) interval. If
+$(p_1-p_2)>\delta$ with the CI excluding 0, v2 emits \textsc{Retriever}
+($R<\tau_R$) or \textsc{Interaction}; else \textsc{Generator} if
+$p_1<\theta$, \textsc{None} if $p_2\ge\theta$, and \textsc{Abstain}
+otherwise. ABSTAIN items become the control knob of a risk--coverage curve
+(selective accuracy vs.\ coverage). \todo{the $k$-sample data collection is
+deferred for API-cost reasons; risk--coverage figure (F4) pending
+\texttt{results/exp03\_v2/}.}
 
-\todo{Expand into the full results section (main table, confusion matrix, risk--coverage) after exp03--exp05 provide fault-injected ground truth; attribution \emph{accuracy} is not claimed here because no ground-truth failure sources exist in this pilot.}
+\subsection{Imperfect-gold handling}
+The gold condition is a witness, and witnesses can lie. We quantify, not
+assume, its trustworthiness: (a) gold-degradation levels (drop 25/50/75\% of
+gold words at an even stride, near-miss replacement, answer-aware
+pseudo-gold) re-run only the gold condition, so attribution curves degrade
+in a measurable way (Sec.~\ref{sec:robust}); (b) rule v2 abstains rather
+than guessing when the gold-vs-retrieved difference is not CI-separated.
 
-\subsection{Pilot observations}
-Gold recall is measured at chunk level: in MIRAGE pools all five chunks share one document-level id, so document-level recall is degenerate (always 1); we identify the gold chunk by exact text match and report passage-level recall (Sec.~IV note). A structural observation follows: with top-$k{=}1$, whenever the gold chunk is retrieved the supplied context \emph{is} the gold passage, so the retrieved-condition answer coincides with the gold-condition answer and the INTERACTION label is unobservable by construction. Interaction failures require multi-chunk contexts (gold plus distractors), which the contradiction fault in RAG-FaultBench provides; this motivates evaluating attribution under controlled faults rather than natural top-1 retrieval alone.
+\section{RAG-FaultBench}
+\label{sec:bench}
+Eight deterministic injectors (Table~\ref{tab:injectors}) modify exactly one
+component of the pipeline while leaving the rest byte-identical; the
+injected fault defines the ground-truth failure source. Retriever faults
+corrupt the evidence supply; generator faults corrupt context use; the
+interaction fault plants a contradictory distractor beside the gold.
+Controls (unmodified questions) carry label \textsc{None}/genuine-failure
+semantics. Faults that cannot apply (e.g., pool too small) fall back to a
+control task and are excluded from fault statistics.
 
-\section{Limitations}
-Small $n$, single retriever (lexical, top-1, per-question pool rather than corpus-wide index), single generator, EM-loose judge without human calibration, no fault-injected ground truth yet; attribution accuracy against ground truth (RQ1) is therefore \emph{not} claimed in this pilot.
+\begin{table}[t]
+\caption{RAG-FaultBench injector catalogue (T2).}
+\label{tab:injectors}
+\small
+\begin{tabular}{llll}
+\toprule
+fault & component & construction & truth \\
+\midrule
+remove\_gold & ret. & gold row dropped from pool & RET \\
+weak\_topk & ret. & worst-ranked chunk as context & RET \\
+truncate\_gold & ret. & gold cut to first 30\% chars & RET \\
+ignore\_context & gen. & system order to ignore context & GEN \\
+adversarial\_prompt & gen. & ``context may be fabricated'' note & GEN \\
+weak\_model & gen. & smaller answerer model substituted & GEN \\
+lost\_in\_middle & gen. & gold buried among distractors & GEN \\
+contradiction & inter. & contradictory chunk beside gold & INT \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Construction and splits.} 120 MIRAGE questions are stratified into
+dev ($n{=}59$: 22 RET / 30 GEN / 7 INT) and test ($n{=}61$: 23 RET / 30 GEN /
+8 INT), so every fault class is proportionally represented and the test
+split is touched once after thresholds are frozen. A dataset card
+(\texttt{data/faultbench/README.md}) and manifest record balance and
+construction hashes.
+
+\section{Experimental Setup}
+\textbf{System.} Retriever: TF-IDF cosine over each question's 5-chunk pool
+(top-$k{=}1$ unless a repair raises it); generator: \texttt{openai/gpt-oss-20b}
+via Groq at $T{=}0$; the \textsc{weak\_model} fault substitutes
+\texttt{allam-2-7b}. Correctness: EM-loose (primary) with the calibrated
+judge as rescue. All LLM calls go through a disk-cached client
+(cache-committed; replay is free), and every experiment writes items,
+summary, and a manifest (git hash, config hash, tokens, date).
+
+\textbf{Thresholds.} $\tau_R$ is tuned on the dev split by a sweep maximizing
+macro-F1 and frozen to \texttt{configs/frozen\_thresholds.json} before any
+test evaluation (pre-registration step; the freeze file records the sweep).
+\todo{frozen value and dev sweep pending the completed exp03a run.}
+
+\textbf{Baselines.} (a) \emph{recall-threshold}: label from $R$ vs.\ $\tau_R$
+only; (b) \emph{metric-rule}: $R$ plus a grounding-overlap proxy with
+threshold $\gamma$ tuned on dev (RAGChecker-inspired, not their package);
+(c) \emph{LLM-as-diagnoser}: one prompt describing the observed behavior,
+free to introspect (live calls, one per test item).
+
+\textbf{Statistics.} 10{,}000-sample bootstrap 95\% CIs (seed 0); McNemar
+exact tests on paired correctness with Holm correction; macro-F1 and
+per-class precision/recall/F1 reported alongside accuracy because class
+balance is controlled but not uniform.
+
+\subsection{Judge calibration}
+\label{sec:judge}
+We compared 150 judge verdicts (50 pilot questions $\times$ 3 conditions)
+against EM-loose. Agreement is \textbf{97.3\%} (146/150; 3 judge-correct /
+EM-wrong, 1 reverse), with 0 unparseable outputs. The judge's mean stated
+confidence is 0.986 while its empirical correctness is 0.56 on the positive
+class (expected calibration error 0.43): it is \emph{severely
+overconfident}, consistent with known LLM-judge failure
+modes~\cite{zheng2023mtbench}. We therefore use the judge only to rescue EM
+false negatives (as a deterministic tie-breaker with recorded evidence), and
+never as a calibrated probability source; rule v2's confidence comes from
+sampling, not from the judge.
+
+\subsection{Pilot (apparatus validation)}
+\label{sec:pilot}
+On 50 MIRAGE questions (no injected faults), answer accuracy is
+0.30/0.88/0.46 for no/gold/retrieved conditions; MIRAGE metrics are
+NV $=0.42$, CA $=0.46$, CI $=0.08$, CM $=0.04$; mean chunk-level recall@1 is
+0.46. Rule v1 attributes 46\% \textsc{None}, 42\% \textsc{Retriever}, 12\%
+\textsc{Generator} (no \textsc{Interaction} cases arise). A structural
+observation explains the last point: with top-$k{=}1$, whenever the gold
+chunk is retrieved the context \emph{is} the gold passage, so the retrieved
+answer coincides with the gold answer and interaction failures are
+unobservable by construction; multi-chunk contexts (via the contradiction
+fault or $k{>}1$) are required, which is precisely what
+\textsc{Rag-FaultBench} supplies. Attribution \emph{accuracy} is not claimed
+in the pilot---no ground-truth failure sources exist there.
+
+\section{Results}
+\subsection{Main study: attribution vs.\ baselines (RQ1, RQ2)}
+\label{sec:main}
+\todo{fill from \texttt{results/exp03/eval.json} (test split, frozen
+$\tau_R$): accuracy, bootstrap CI, macro-F1, per-class P/R/F1, confusion
+matrix (F3), per-fault accuracy---and from
+\texttt{results/exp04/eval.json}: baseline accuracies, McNemar $b/c$ counts
+and Holm-adjusted $p$ vs.\ rule v1 (T3).}
+
+\subsection{Per-fault analysis}
+\label{sec:perfault}
+\todo{from \texttt{results/exp03/eval.json} per-fault accuracy + dev records:
+the rule is expected to be strong on retrieval-only faults whose gold
+condition remains intact (remove\_gold, weak\_topk: $c{=}010$) and weakest
+where the fault also degrades the gold witness (generator faults and
+truncate\_gold); quantify after the final run rather than assert now.}
+
+\subsection{Robustness to gold degradation and judge noise (RQ3-lite)}
+\label{sec:robust}
+\todo{from \texttt{results/exp06/eval.json}: rule accuracy/macro-F1 at
+clean/drop25/drop50/drop75/near-miss/pseudo-gold with per-level $c_1$ rates
+and skip counts (pseudo-gold availability varies), vs.\ the frozen baseline
+(which is gold-independent and therefore flat); judge-noise flip sweep
+($p\in\{0,.05,.1,.15,.2,.3\}$, 200 seeded trials) means$\pm$std. Figure F5.}
+
+\subsection{Multi-model transfer (RQ4-lite)}
+\label{sec:multimodel}
+\todo{from \texttt{results/exp07/eval.json}: per-model macro-F1 under the
+same frozen $\tau_R$ (threshold transfer, no per-model tuning) for
+\texttt{gpt-oss-120b} and \texttt{qwen3.8-27b} vs.\ the main model, plus
+label-agreement and Cohen's $\kappa$ vs.\ the main run (T5, F6). Single
+dataset, multi-model---honest scope.}
+
+\subsection{Utility of diagnosis-matched repairs (RQ5-lite)}
+\label{sec:utility}
+\todo{from \texttt{results/exp08/eval.json}: on the failure set
+($c_2{=}0$), gains of our-fix (top-$k$3 for predicted \textsc{Retriever},
+stricter grounding prompt for predicted \textsc{Generator}) vs.\ seeded
+random-fix and always-one-component baselines, with paired sign tests
+(McNemar exact, Holm). The gold-rerank repair is oracle-assisted and
+reported separately (F6b).}
+
+\section{Analysis and Discussion}
+\label{sec:analysis}
+\todo{finalize after the main run. Expected structure: (a) the gold-witness
+assumption---rule v1's \textsc{Retriever}/\textsc{Interaction} split only
+fires when $c_1{=}1$, so faults that also break the gold condition route to
+\textsc{Generator}/\textsc{None} regardless of $R$; (b) the
+\textsc{None}-before-\textsc{Retriever} priority and its interaction with
+truncate\_gold-style faults that keep the gold id retrievable while
+destroying the evidence; (c) parametric-knowledge leakage ($c_0{=}1$) as a
+ceiling on retriever attribution; (d) cost: attribution costs two extra
+generations per question plus one recall computation, i.e., a constant
+overhead with no training.}
+
+\section{Limitations and Ethics}
+\textbf{Limitations.} (1) \emph{Injected vs.\ natural}: fault injection
+yields ground truth at the cost of ecological validity; injector semantics
+may not span all real failure modes. (2) \emph{Judge dependence}: EM-loose
+misses paraphrases; our judge rescues some but is overconfident and
+unvalidated against human annotators (no second annotator was available;
+human calibration is future work). (3) \emph{Single corpus, lexical
+retriever, small $n$}: one dataset (MIRAGE), TF-IDF pools rather than
+corpus-scale indexing; multi-model transfer is measured, cross-dataset
+generalization is not. (4) \emph{Gold requirement}: the core rule needs a
+gold reference; degradation experiments quantify but do not eliminate this.
+(5) \emph{Model drift}: API-hosted generators can change under us; manifests
+pin dates and model ids. (6) Rule v2's risk--coverage evaluation awaits
+$k$-sample data (cost-bound).
+
+\textbf{Ethics.} The benchmark reuses public QA data (no PII); faults are
+benign prompt/context manipulations, not jailbreaks. The intended use is
+\emph{debugging aid}, not autonomous blame assignment: labels are evidence
+summaries with explicit abstention and should be reviewed by engineers.
+LLM-judge biases (position, verbosity, self-preference) are documented in
+the judge-reliability literature~\cite{zheng2023mtbench}; our calibration
+quantifies overconfidence for this judge specifically. API-based
+experiments consumed 93,706 tokens for the pilot pass; cached replay made
+all re-analyses free.
 
 \section{Conclusion}
-We described a controlled-condition attribution framework and its pilot instantiation; the validated study (fault benchmark, baselines, robustness, generalization) proceeds per the pre-registered plan in \texttt{docs/03\_EXPERIMENT\_PLAN.md}.
+We presented a controlled-condition attribution method for RAG failures and
+validated---rather than assumed---its measurement apparatus: an auditable
+decision rule with abstention, a fault-injected benchmark with known failure
+sources, dev-only threshold freezing, and stress tests that expose the
+method's dependence on a trustworthy gold witness.
+\todo{summarize final headline numbers after exp03--exp08 complete.}
+Future work: $k$-sample v2 with risk--coverage, corpus-scale retrieval,
+cross-dataset transfer, and human-annotated natural-failure labels.
 
-\bibliographystyle{IEEEtran}
+\appendix
+\subsection{Prompts}
+All conditions share one template (context block substituted); the base
+condition omits it; the grounding repair adds a strict-grounding system
+message (reply \texttt{CANNOT ANSWER} when unsupported). Exact prompt files
+live in \texttt{src/ragdx/} (answer, judge, diagnoser) and are reproduced in
+the repository.
+
+\subsection{Hyperparameters}
+$\tau_R$: dev-sweep $\{0.1,\dots,0.9\}$ maximizing dev macro-F1, frozen
+before test (value in \texttt{configs/frozen\_thresholds.json}); v2:
+$\delta$, $\theta$ per \texttt{AttributionThresholds}; $\gamma$ (metric-rule
+grounding proxy) dev-tuned; bootstrap 10k, seed 0; judge-noise sweep
+200 trials/level, seeded.
+
+\subsection{Reproducibility checklist}
+Every number is generated from \texttt{results/*/\{items,eval,summary\}.json}
+by committed experiment scripts; experiment manifests record git hash, model,
+tokens, and date; the LLM cache makes reruns deterministic and free; 129
+offline unit tests cover metrics, injectors, rules, statistics, degradation,
+noise, and figure assembly.
+
 \begin{thebibliography}{9}
 \bibitem{park2025mirage}
-Park et~al., ``MIRAGE: Multi-framework Interaction Reliability Assessment for Generative Engines,'' Findings of NAACL 2025. \url{https://arxiv.org/abs/2504.17137}
-\todo{remaining citations (RAGChecker, RAGVUE, GaRAGe, SEARA, RAGAS) added in Phase 0 per docs/07; each must be verified before use.}
+C.~Park, H.~Moon, C.~Park, and H.~Lim, ``MIRAGE: A Metric-Intensive Benchmark
+for Retrieval-Augmented Generation Evaluation,'' in \emph{Findings of the
+63rd ACL: NAACL 2025}, 2025. \url{https://aclanthology.org/2025.findings-naacl.157/}
+\bibitem{ru2024ragchecker}
+D.~Ru, L.~Qiu, X.~Hu, T.~Zhang, P.~Shi, S.~Chang, C.~Jiayang, C.~Wang,
+S.~Sun, H.~Li, Z.~Zhang, B.~Wang, J.~Jiang, T.~He, Z.~Wang, P.~Liu,
+Y.~Zhang, and Z.~Zhang, ``RAGChecker: A Fine-grained Framework for
+Diagnosing Retrieval-Augmented Generation,'' in \emph{Advances in Neural
+Information Processing Systems 37 (NeurIPS 2024), Datasets and Benchmarks
+Track}, 2024. \url{https://arxiv.org/abs/2408.08067}
+\bibitem{sorodoc2025garage}
+I.~T.~Sorodoc, L.~F.~R.~Ribeiro, R.~Blloshmi, C.~Davis, and A.~de~Gispert,
+``GaRAGe: A Benchmark with Grounding Annotations for RAG Evaluation,'' in
+\emph{Findings of the ACL 2025}, pp. 17030--17049, 2025.
+\url{https://doi.org/10.18653/v1/2025.findings-acl.875}
+\bibitem{es2024ragas}
+S.~Es, J.~James, L.~Espinosa-Anke, and S.~Schockaert, ``RAGAS: Automated
+Evaluation of Retrieval Augmented Generation,'' in \emph{EACL 2024 System
+Demonstrations}, pp. 150--158, 2024.
+\url{https://doi.org/10.18653/v1/2024.eacl-demo.16}
+\bibitem{murugaraj2026ragvue}
+K.~Murugaraj, S.~Lamsiyah, and M.~Theobald, ``RAGVUE: A Diagnostic View for
+Explainable and Automated Evaluation of Retrieval-Augmented Generation,'' in
+\emph{EACL 2026 System Demonstrations}, pp. 512--526, 2026.
+\url{https://doi.org/10.18653/v1/2026.eacl-demo.35}
+\bibitem{zou2025seara}
+Z.~Yuheng, W.~Yiran, T.~Yuzhu, Z.~Min, and H.~Yanhua, ``SEARA: An Automated
+Approach for Obtaining Optimal Retrievers,'' in \emph{EMNLP 2025 Industry
+Track}, pp. 993--1006, 2025.
+\url{https://doi.org/10.18653/v1/2025.emnlp-industry.67}
+\bibitem{liu2024lost}
+N.~F.~Liu, K.~Lin, J.~Hewitt, A.~Paranjape, M.~Bevilacqua, F.~Petroni, and
+P.~Liang, ``Lost in the Middle: How Language Models Use Long Contexts,''
+\emph{Transactions of the ACL}, vol.~12, pp. 157--173, 2024.
+\url{https://doi.org/10.1162/tacl_a_00638}
+\bibitem{zheng2023mtbench}
+L.~Zheng, W.-L.~Chiang, Y.~Sheng, S.~Zhuang, Z.~Wu, Y.~Zhuang, Z.~Lin,
+Z.~Li, D.~Li, E.~P.~Xing, H.~Zhang, J.~E.~Gonzalez, and I.~Stoica,
+``Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena,'' in \emph{Advances
+in Neural Information Processing Systems 36 (NeurIPS 2023), Datasets and
+Benchmarks Track}, 2023. \url{https://arxiv.org/abs/2306.05685}
 \end{thebibliography}
 
 \end{document}
