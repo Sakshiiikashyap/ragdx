@@ -33,8 +33,9 @@ failure-source labels (120 questions, 8 injectors, dev/test split) used to
 and an open-weight generator, our pilot establishes the measurement apparatus:
 answer accuracy is 0.30 (no context), 0.88 (gold), 0.46 (retrieved), and an
 LLM judge agrees with exact match on 97.3\% of 150 verdicts (and corrects 3
-of its false negatives) but is severely overconfident (ECE 0.43), so we treat
-it as a rescue mechanism rather than a probability source.
+of its false negatives), well calibrated against that imperfect reference
+(ECE 0.013), so we treat it as a rescue mechanism rather than a
+calibration source.
 \todo{main-study attribution accuracy vs.\ baselines, robustness, and
 multi-model numbers pending exp03--exp08 finalization; all tables and figures
 are generated from \texttt{results/} artifacts by committed scripts.}
@@ -122,8 +123,8 @@ gold requirements for \emph{retriever comparison}, while we measure how
 \textbf{Judge reliability.} LLM-as-a-judge is widely used because strong
 judges reach $>$80\% agreement with human
 preferences~\cite{zheng2023mtbench}; we calibrate our judge against exact
-match and report its overconfidence (Sec.~\ref{sec:judge}) rather than
-assuming it.
+match and report its agreement and calibration (Sec.~\ref{sec:judge})
+rather than assuming them.
 
 \begin{table}[t]
 \caption{Positioning: per-question failure-source attribution with validated
@@ -295,15 +296,18 @@ balance is controlled but not uniform.
 \subsection{Judge calibration}
 \label{sec:judge}
 We compared 150 judge verdicts (50 pilot questions $\times$ 3 conditions)
-against EM-loose. Agreement is \textbf{97.3\%} (146/150; 3 judge-correct /
-EM-wrong, 1 reverse), with 0 unparseable outputs. The judge's mean stated
-confidence is 0.986 while its empirical correctness is 0.56 on the positive
-class (expected calibration error 0.43): it is \emph{severely
-overconfident}, consistent with known LLM-judge failure
-modes~\cite{zheng2023mtbench}. We therefore use the judge only to rescue EM
-false negatives (as a deterministic tie-breaker with recorded evidence), and
-never as a calibrated probability source; rule v2's confidence comes from
-sampling, not from the judge.
+against EM-loose. Agreement is \textbf{97.3\%} (146/150: 81 both-correct, 65
+both-incorrect, 3 judge-correct/EM-wrong, 1 reverse), with 0 unparseable
+outputs. Mean stated confidence is 0.986 against an in-bin agreement rate of
+0.973, i.e., expected calibration error 0.013 using EM as the
+reference---well calibrated on this sample. Two honest caveats: the
+reference is imperfect (the 3 judge-only-correct cases are EM substring
+false negatives, and true calibration against humans is unidentifiable
+without annotation, which we deferred), and this judge was used with a
+single prompt and model. We therefore use the judge only as a deterministic
+rescue for EM false negatives, recording its verdict and rationale in each
+item's evidence; rule v2's confidence comes from repeated sampling, not from
+judge self-report.
 
 \subsection{Pilot (apparatus validation)}
 \label{sec:pilot}
@@ -379,9 +383,9 @@ overhead with no training.}
 \textbf{Limitations.} (1) \emph{Injected vs.\ natural}: fault injection
 yields ground truth at the cost of ecological validity; injector semantics
 may not span all real failure modes. (2) \emph{Judge dependence}: EM-loose
-misses paraphrases; our judge rescues some but is overconfident and
-unvalidated against human annotators (no second annotator was available;
-human calibration is future work). (3) \emph{Single corpus, lexical
+misses paraphrases; our judge rescues some but is calibrated only against
+EM, not validated against human annotators (no second annotator was
+available; human calibration is future work). (3) \emph{Single corpus, lexical
 retriever, small $n$}: one dataset (MIRAGE), TF-IDF pools rather than
 corpus-scale indexing; multi-model transfer is measured, cross-dataset
 generalization is not. (4) \emph{Gold requirement}: the core rule needs a
@@ -396,9 +400,10 @@ benign prompt/context manipulations, not jailbreaks. The intended use is
 summaries with explicit abstention and should be reviewed by engineers.
 LLM-judge biases (position, verbosity, self-preference) are documented in
 the judge-reliability literature~\cite{zheng2023mtbench}; our calibration
-quantifies overconfidence for this judge specifically. API-based
-experiments consumed 93,706 tokens for the pilot pass; cached replay made
-all re-analyses free.
+quantifies agreement and confidence for this judge against an imperfect EM
+reference, and its verdicts remain reviewable via recorded evidence.
+API-based experiments consumed 93,706 tokens for the pilot pass; cached
+replay made all re-analyses free.
 
 \section{Conclusion}
 We presented a controlled-condition attribution method for RAG failures and

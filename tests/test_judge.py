@@ -50,3 +50,15 @@ def test_agreement_report_disagreements_and_ece_bounds():
     assert rep["confusion_em_rows_judge_cols"]["judge_only_correct"] == 1
     assert rep["confusion_em_rows_judge_cols"]["em_only_correct"] == 1
     assert 0.0 <= rep["ece"] <= 1.0
+
+
+def test_ece_measures_agreement_not_verdict_base_rate():
+    # D019 regression: judge confidently matches EM on 10/10 balanced items
+    # -> per-bin accuracy 1.0, mean conf 0.99 => ECE = 0.01. The earlier
+    # (buggy) definition compared confidence to the rate of "correct"
+    # verdicts (0.5 here) and would report ECE = 0.49 ("overconfident").
+    pairs = [(True, JudgeResult("correct", 0.99, "", "")) for _ in range(5)] + [
+        (False, JudgeResult("incorrect", 0.99, "", "")) for _ in range(5)]
+    rep = agreement_report(pairs)
+    assert abs(rep["ece"] - 0.01) < 1e-9
+    assert rep["bins"][4]["agreement_vs_em"] == 1.0

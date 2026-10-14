@@ -107,3 +107,8 @@ Rationale: utility claim needs a falsifiable comparator (mismatched repairs must
 Date: 2026-10-15
 Decision: IEEEtran conference format compiled with tools/tectonic.exe; author byline = repo git identity; bibliography is a hand-written thebibliography with the 8 ledger-verified entries (MIRAGE title corrected to "A Metric-Intensive Benchmark for RAG Evaluation"); pending exp03-exp08 numbers marked \todo{} with their source artifact paths instead of being guessed.
 Rationale: viva deadline; CLAUDE.md no-invented-numbers rule; \todo markers make the final fill-in mechanical once chains complete.
+
+## D019 - Judge ECE bugfix (red-team catch, 2026-10-15)
+Decision: judge.agreement_report computed per-bin "accuracy" as the RATE OF "correct" VERDICTS (84/150=0.56), not agreement with the EM reference (0.973), inflating ECE to 0.4265 and fueling a wrong "judge is severely overconfident" claim in intent P1 and the paper. Fixed (accuracy = agreement vs EM; key renamed judge_accuracy -> agreement_vs_em); regression test added (balanced 10/10 perfect-agreement case must give ECE=0.01, not 0.49); agreement.json regenerated from cache (free); paper/intent updated: ECE = 0.0131, judge well calibrated against EM with the honest caveat that EM itself is imperfect (3 judge-only-correct rescues) and no human annotation exists.
+Rationale: the erroneous number was load-bearing for a paper narrative; the P11 red-team pass caught it before submission. ECE needs a reference; ours is EM, stated explicitly wherever the number appears.
+Impact: results/exp01_judge/agreement.json (ece 0.4265 -> 0.0131), paper abstract/6.1/9, intent.md P1 line.

@@ -19,7 +19,7 @@ multi-dataset corpus-scale generalization (RQ4) beyond multi-model, utility RQ5-
 
 ### P1 Judge + reliability (O9-lite) — status: [x] DONE (2026-10-14)
 - [x] `judge/judge.py`: LLM-as-judge correctness (T=0, JSON schema), prompt in `llm/prompts/judge.md`
-- [x] Judge calibration vs EM-loose/strict on exp01's 50 items: **agreement 0.9733** (146/150), 0 unparseable; 3 judge-correct/EM-wrong (EM substring false negatives), 1 reverse; ECE proxy 0.43 — judge overconfident (all confidences ~0.99); honest reporting: judge is a rescue mechanism for EM false negatives, not a calibrated probability source
+- [x] Judge calibration vs EM-loose/strict on exp01's 50 items: **agreement 0.9733** (146/150), 0 unparseable; 3 judge-correct/EM-wrong (EM substring false negatives), 1 reverse; **ECE 0.0131** vs EM reference (**D019 bugfix 2026-10-15:** an earlier "ECE 0.43 = overconfident" figure compared confidence to the rate of "correct" verdicts (a base rate), not accuracy vs EM — fixed in `judge.py` + regression test; judge is *well calibrated against EM*, still used only as a rescue because the EM reference is imperfect, not a calibrated probability source)
 - [x] Human-annotation CSV: DEFERRED (no second annotator available tonight; marked future work in paper)
 - [x] Tests: judge parsing (valid/invalid JSON), agreement metrics — 42→57 tests total
 

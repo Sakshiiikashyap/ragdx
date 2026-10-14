@@ -95,15 +95,19 @@ def agreement_report(pairs: list[tuple[bool, JudgeResult]]) -> dict:
     ece = 0.0
     bin_stats = []
     for lo, hi in bins:
-        sel = [j for em, j in valid if lo <= j.confidence < hi or (hi == 1.0 and j.confidence == 1.0)]
+        sel = [(em, j) for em, j in valid
+               if lo <= j.confidence < hi or (hi == 1.0 and j.confidence == 1.0)]
         if not sel:
             bin_stats.append({"bin": f"{lo:.1f}-{hi:.1f}", "n": 0})
             continue
-        acc_bin = sum(1 for j in sel if j.correct) / len(sel)
-        conf_bin = sum(j.confidence for j in sel) / len(sel)
+        # accuracy per bin = agreement of the judge's verdict with the EM
+        # reference (D019: an earlier version used the rate of "correct"
+        # verdicts as accuracy, which is a base rate, not calibration).
+        acc_bin = sum(1 for em, j in sel if em == j.correct) / len(sel)
+        conf_bin = sum(j.confidence for _, j in sel) / len(sel)
         ece += len(sel) / len(valid) * abs(acc_bin - conf_bin)
         bin_stats.append({"bin": f"{lo:.1f}-{hi:.1f}", "n": len(sel),
-                          "judge_accuracy": round(acc_bin, 3),
+                          "agreement_vs_em": round(acc_bin, 3),
                           "mean_confidence": round(conf_bin, 3)})
     return {"n": len(valid), "n_unparseable": n_unparseable,
             "agreement": round(agree / len(valid), 4),
