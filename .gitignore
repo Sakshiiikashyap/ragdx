@@ -1,0 +1,20 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+.pytest_cache/
+
+# Large data / generated outputs
+data/raw/
+data/processed/
+results/
+!results/.gitkeep
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/

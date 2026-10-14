@@ -1,0 +1,10 @@
+# Core
+groq>=0.13
+datasets>=2.21
+scikit-learn>=1.6
+pydantic>=2.10
+PyYAML>=6.0
+python-dotenv>=1.0
+numpy>=1.26
+pandas>=2.2
+pytest>=8.0
