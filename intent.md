@@ -30,19 +30,18 @@ multi-dataset corpus-scale generalization (RQ4) beyond multi-model, utility RQ5-
 - [x] FaultBench: 120 questions → dev 59 / test 61, stratified (dev: RET 22/GEN 30/INT 7; test: RET 23/GEN 30/INT 8), card + manifest
 - **Cost actual:** ~0 API calls (injectors pure); bench run cost counted in P4
 
-### P3 Attribution v2 + baselines (O6, O8) — status: [ ] TODO
-- [ ] `attribution/probabilistic.py`: k-sample Wilson-CI rule with ABSTAIN (k=5, T>0) on dev only for pilot cost; risk-coverage curve
-- [ ] `attribution/baselines.py`: (a) recall-threshold rule; (b) RAGChecker-style metric rule (claim recall/faithfulness proxies computed from existing metrics — documented as "RAGChecker-inspired", not official package, pending install check); (c) LLM-as-diagnoser (prompt `llm/prompts/diagnoser.md`, same info as our method minus conditions)
-- [ ] Tune rule-v1 τ_R and baseline thresholds on **dev only**; freeze; test once
-- **Accept:** baseline predictions on test CSV; thresholds recorded in configs
-- **Cost:** diagnoser ~120 calls; v2 k-sampling deferred to dev subset (30q×5×3=450 calls) — run if rate limit allows, else mark `\todo`
+### P3 Attribution v2 + baselines (O6, O8) — status: [x] CODE DONE (2026-10-14)
+- [x] `attribution/probabilistic.py`: Wilson CI, Wald diff CI, rule_v2 w/ ABSTAIN, risk_coverage
+- [x] `attribution/baselines.py`: recall_threshold, metric_rule (RAGChecker-inspired, D008), llm_diagnoser
+- [x] `analysis/stats.py`: bootstrap CI, McNemar exact, Holm, macro-F1, per-class, confusion
+- [x] tau_R tuned on dev (exp03a sweep), frozen in `configs/frozen_thresholds.json` before test
+- [ ] v2 k-sampling run (deferred: cost; attempt after P4 if rate limits allow)
 
-### P4 Main study exp03+exp04 (RQ1, RQ2) — status: [ ] TODO
-- [ ] `experiments/exp03_faultbench.py`: run rule v1 (+v2 if done) on test split → accuracy, macro-F1, per-class P/R, confusion matrix, bootstrap 95% CI
-- [ ] `experiments/exp04_baselines.py`: same metrics for all baselines + McNemar vs ours (Holm-corrected)
-- [ ] `analysis/stats.py` (bootstrap, McNemar), `analysis/plots.py` (matplotlib → `paper/figures/`)
-- **Accept:** `results/exp03`, `results/exp04` with per-item CSVs + tables/figures; NOTES.md 5-line interpretation each
-- **Cost:** runs reuse P2 cache (attribution is post-hoc on cached generations)
+### P4 Main study exp03+exp04 (RQ1, RQ2) — status: [~] RUNNING (2026-10-14)
+- [x] `experiments/exp03a_faultbench_dev.py` (dev run + tau sweep + freeze) — RUNNING in background
+- [x] `experiments/exp03b_faultbench_test.py` (single-use test + eval report)
+- [x] `experiments/exp04_baselines.py` (3 baselines + McNemar/Holm)
+- [ ] Run exp03b + exp04 when dev run finishes; confusion/risk-coverage figures in `analysis/plots.py`
 
 ### P5 Robustness exp06 (RQ3-lite) — status: [ ] TODO
 - [ ] Gold degradation: drop 25/50/75% of gold chunk content; near-miss replacement; SEARA-style pseudo-gold (answer-containing chunk from pool as surrogate gold)

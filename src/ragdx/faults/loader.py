@@ -30,9 +30,9 @@ def rows_to_tasks(rows: list[dict]) -> list[FaultedTask]:
     tasks = []
     for r in rows:
         item = items[r["query_id"]]
-        orig = None
-        if r.get("pool_chunks_override") is not None:
-            # recover original positions by order-preserving text match
+        orig = r.get("pool_orig_index")
+        if orig is None and r.get("pool_chunks_override") is not None:
+            # legacy rows without persisted indices: order-preserving text match
             pool = r["pool_chunks_override"]
             orig = []
             cursor = 0

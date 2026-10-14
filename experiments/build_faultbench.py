@@ -39,6 +39,7 @@ def task_to_dict(task: FaultedTask) -> dict:
             "oracle_chunk_override": task.oracle_chunk,
             "pool_ids_override": task.pool_ids,
             "pool_chunks_override": task.pool_chunks,
+            "pool_orig_index": task.pool_orig_index,
             "distractor_chunk": task.distractor_chunk, "meta": task.meta}
 
 

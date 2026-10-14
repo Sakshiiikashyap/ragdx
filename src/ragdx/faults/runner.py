@@ -145,9 +145,14 @@ def run_tasks(tasks: list[FaultedTask], client: LLMClient, out_dir: str | Path,
     th = AttributionThresholds(tau_r=tau_r)
     t0 = time.time()
     records = []
+    ckpt = out / "checkpoint.jsonl"
+    if ckpt.exists():
+        ckpt.unlink()  # fresh run (LLM answers remain cached, so cheap)
     for i, task in enumerate(tasks):
         rec = run_task(task, client, thresholds=th, top_k=top_k)
         records.append(rec)
+        with ckpt.open("a", encoding="utf-8") as f:  # crash-safe checkpoint
+            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
         ok = "OK " if rec["pred_label"] == rec["ground_truth"] else "MISS"
         print(f"[{i+1}/{len(tasks)}] {ok} {task.fault:22s} "
               f"truth={rec['ground_truth']:11s} pred={rec['pred_label']:11s} "

@@ -20,7 +20,7 @@ from ragdx.faults import FaultedTask
 FILLER = ("The committee met on Tuesday to discuss procedural matters unrelated "
           "to the query at hand, and adjourned after approving the minutes. ") * 3
 
-WEAK_MODEL = "llama-3.1-8b-instant"
+WEAK_MODEL = "allam-2-7b"  # smallest general model on Groq (verified 2026-10-14; llama-3.1-8b-instant retired)
 
 
 def ignore_context(item: MirageItem, seed: int = 0) -> FaultedTask:
