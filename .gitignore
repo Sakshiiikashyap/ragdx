@@ -18,3 +18,8 @@ results/
 .DS_Store
 Thumbs.db
 .vscode/
+
+tools/
+paper/*.pdf
+paper/tectonic_log.txt
+tectonic_log.txt

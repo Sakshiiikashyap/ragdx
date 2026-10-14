@@ -1,0 +1,72 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+\usepackage{cite,amsmath,amssymb,amsfonts,booktabs,graphicx,url}
+\usepackage[utf8]{inputenc}
+\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+\usepackage{xcolor}
+
+\begin{document}
+
+\title{Attributing RAG Failures to Retriever or Generator:\\
+Controlled-Condition Diagnosis with Validated Ground Truth}
+
+\author{\IEEEauthorblockN{Anonymous}
+\IEEEauthorblockA{Institution withheld for review}}
+
+\maketitle
+
+\begin{abstract}
+Retrieval-augmented generation (RAG) systems fail for heterogeneous reasons---retrieval miss, generator misuse of good context, or interaction effects---yet end-to-end accuracy conflates them. We present a controlled-condition attribution method that diagnoses the failure source of each question by comparing answer correctness under three conditions: no context, gold context, and real retrieval, combined with retrieval recall. Our method emits an explicit abstention and an evidence record, supporting a risk--coverage analysis. We release RAG-FaultBench, a fault-injected benchmark with known failure-source labels. On a MIRAGE subset with a TF-IDF retriever and an open-weight generator, we report \todo{numbers pending the final run} attribution outcomes with a dominance of interaction (distractor) failures. All reported numbers are generated from \texttt{results/} artifacts by reproducible scripts.
+\todo{abstract numbers finalized after exp03--exp05 (fault injection, baselines, judge calibration).}
+\end{abstract}
+
+\begin{IEEEkeywords}
+retrieval-augmented generation, failure attribution, evaluation, diagnosis
+\end{IEEEkeywords}
+
+\section{Introduction}
+End-to-end accuracy hides \emph{why} a RAG system failed. A wrong answer can come from the retriever (gold evidence absent), the generator (gold evidence present but ignored or misread), or their interaction (distracting near-miss evidence). Existing metric frameworks quantify quality but do not, per question, assign a failure source with calibrated uncertainty.
+
+\noindent\textbf{Contributions.} (i) A formal attribution framework over three controlled conditions with abstention and an evidence record; (ii) RAG-FaultBench, a fault-injected benchmark with ground-truth failure sources; (iii) an empirical comparison against recall-threshold and metric-rule baselines; (iv) an open-source tool (ragdx) with a read-only diagnosis dashboard.
+
+\section{Problem Formulation}
+For question $q$, let $c_0, c_1, c_2 \in \{0,1\}$ denote answer correctness under no-context, gold-context, and real-retrieval conditions, and $R$ the gold recall@k of the retrieved set. Attribution maps $(c_0, c_1, c_2, R)$ to a label in \{\textsc{Retriever}, \textsc{Generator}, \textsc{Interaction}, \textsc{None}, \textsc{Question-Issue}, \textsc{Anomaly}, \textsc{Abstain}\}. Attribution is evidence-based diagnosis, not a causal proof; causal validation is deferred to the intervention study (exp08).
+
+\section{Method}
+\subsection{Three-condition protocol}
+For each question we generate answers with (a) no context, (b) the gold chunk, (c) top-$k$ retrieved chunks, holding the generator and decoding fixed ($T=0$). Correctness uses the MIRAGE EM-loose criterion (any reference answer as substring)~\cite{park2025mirage}.
+
+\subsection{Attribution rule v1}
+\todo{decision table figure pending final spec sign-off.} The deterministic rule assigns labels in priority order: retrieval success implies \textsc{None} (flagging parametric knowledge if the base condition already succeeded); gold-succeeds/retrieved-fails splits into \textsc{Retriever} ($R < \tau_R$) vs.\ \textsc{Interaction} ($R \ge \tau_R$); base-succeeds/gold-fails implies \textsc{Generator} (context misinterpretation); all-fail implies \textsc{Generator}, downgraded to \textsc{Question-Issue} when the gold audit flags insufficient gold. A more specific ``retrieval-only success'' pattern is labelled \textsc{Anomaly} (judge noise or lucky guess).
+
+\subsection{Probabilistic rule v2 (planned)}
+\todo{rule v2 (Wilson-CI, abstention, risk--coverage) ships in Phase 3; not in this pilot.}
+
+\section{RAG-FaultBench \& Annotation (planned)}
+\todo{fault-injection catalogue and human-annotated subset land in Phase 2 (docs/03); this pilot contains no injected faults.}
+
+\section{Experimental Setup (pilot)}
+Datasets: MIRAGE~\cite{park2025mirage} subset ($n=50$, first 50 questions of the HF \texttt{train} split); retriever: TF-IDF cosine top-1 over the per-question 5-chunk pool; generator: \texttt{openai/gpt-oss-20b} via Groq at $T=0$; judge: EM-loose; thresholds: $\tau_R=0.5$ (pre-registered, not tuned). The run consumed 93{,}706 tokens in 509.5\,s with 30 cache hits; all artifacts live in \texttt{results/exp01/} (items, summary, manifest with git + config hashes).
+
+\section{Results (pilot)}
+All numbers below are generated from \texttt{results/exp01/summary.json} via \texttt{analysis/tables.py} (auto-generated table in \texttt{paper/tables/exp01\_summary.tex}). Answer accuracy is 0.30 (base), 0.88 (gold), and 0.46 (retrieved). MIRAGE system metrics: NV $=0.42$, CA $=0.46$, CI $=0.08$, CM $=0.04$. Attribution with rule v1 distributes as NONE 23/50 (46\%), INTERACTION 21/50 (42\%), GENERATOR 6/50 (12\%); no RETRIEVER or ANOMALY cases occurred in this slice.
+
+\todo{Expand into the full results section (main table, confusion matrix, risk--coverage) after exp03--exp05 provide fault-injected ground truth; attribution \emph{accuracy} is not claimed here because no ground-truth failure sources exist in this pilot.}
+
+\subsection{Pilot observations}
+Mean gold recall@k is 1.000: within the 5-chunk per-question pool, TF-IDF surfaces the gold chunk at rank 1 for every question. Consequently the $R < \tau_R$ branch never fires and all gold-succeeds/retrieved-fails cases are labelled INTERACTION. This exposes a design dependency worth discussing: with an easy (small-pool, in-domain) retriever, the retriever-vs-interaction distinction collapses, and corpus-wide retrieval or fault-injected retrieval faults (Phase 2) are required to exercise the RETRIEVER label.
+
+\section{Limitations}
+Small $n$, single retriever (lexical, top-1, per-question pool rather than corpus-wide index), single generator, EM-loose judge without human calibration, no fault-injected ground truth yet; attribution accuracy against ground truth (RQ1) is therefore \emph{not} claimed in this pilot.
+
+\section{Conclusion}
+We described a controlled-condition attribution framework and its pilot instantiation; the validated study (fault benchmark, baselines, robustness, generalization) proceeds per the pre-registered plan in \texttt{docs/03\_EXPERIMENT\_PLAN.md}.
+
+\bibliographystyle{IEEEtran}
+\begin{thebibliography}{9}
+\bibitem{park2025mirage}
+Park et~al., ``MIRAGE: Multi-framework Interaction Reliability Assessment for Generative Engines,'' Findings of NAACL 2025. \url{https://arxiv.org/abs/2504.17137}
+\todo{remaining citations (RAGChecker, RAGVUE, GaRAGe, SEARA, RAGAS) added in Phase 0 per docs/07; each must be verified before use.}
+\end{thebibliography}
+
+\end{document}
