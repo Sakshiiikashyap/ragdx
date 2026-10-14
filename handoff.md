@@ -117,5 +117,8 @@ formulation, method (rule v1 + ANOMALY precedence note), experimental setup
 - 81 unit tests, all offline: `python -m pytest -q`.
 - Never commit: `.env` (key), `results/`, `data/raw|processed`, `tools/`,
   `paper/*.pdf`. See `.gitignore`.
-- GitHub push: pending auth (no gh CLI on this machine; see last
-  decisions.md entry / ask user for remote + credentials).
+- GitHub: **pushed** → `https://github.com/Sakshiiikashyap/ragdx` (private,
+  created 2026-10-15, branch `main` @ 0f753a3+, 453 files; `.env` verified
+  absent from remote tree). Auth used the machine's stored GitHub credential;
+  per-command header only, token never written to `.git/config`. Flip to
+  public via repo Settings if desired.
