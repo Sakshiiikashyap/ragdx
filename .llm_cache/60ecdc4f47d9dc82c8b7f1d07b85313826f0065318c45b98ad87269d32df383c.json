@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.99,\"rationale\":\"The candidate includes the essential fact that he is a politician, matching the reference answers.\"}", "prompt_tokens": 286, "completion_tokens": 150, "meta": {"latency_s": 6.715940237045288}}

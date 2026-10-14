@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":0.99,\"rationale\":\"Candidate states he is a professor of physics, which contradicts the reference that he is a politician.\"}", "prompt_tokens": 282, "completion_tokens": 125, "meta": {"latency_s": 1.622209072113037}}

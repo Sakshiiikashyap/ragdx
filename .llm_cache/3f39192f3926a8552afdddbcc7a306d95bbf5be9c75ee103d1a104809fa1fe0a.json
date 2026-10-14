@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.99,\"rationale\":\"The candidate states 'American lawyer', which matches the reference occupation 'lawyer' and adds a non-contradictory nationality.\"}", "prompt_tokens": 278, "completion_tokens": 117, "meta": {"latency_s": 8.135012865066528}}

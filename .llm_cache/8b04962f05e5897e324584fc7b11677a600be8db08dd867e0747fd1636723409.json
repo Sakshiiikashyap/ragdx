@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.95,\"rationale\":\"It includes the essential fact 'politician' as stated in the references.\"}", "prompt_tokens": 285, "completion_tokens": 245, "meta": {"latency_s": 1.1481094360351562}}

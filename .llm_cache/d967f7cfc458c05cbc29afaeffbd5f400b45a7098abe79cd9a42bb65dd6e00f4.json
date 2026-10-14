@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.99,\"rationale\":\"The candidate includes the essential fact that Tolis Voskopoulos is a composer, matching the reference.\"}", "prompt_tokens": 273, "completion_tokens": 178, "meta": {"latency_s": 0.47890281677246094}}

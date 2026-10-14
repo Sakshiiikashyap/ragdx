@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":1.0,\"rationale\":\"The candidate states he was a footballer, while the reference says he was a composer.\"}", "prompt_tokens": 270, "completion_tokens": 114, "meta": {"latency_s": 1.0654215812683105}}

@@ -1,0 +1,39 @@
+{
+  "n_dev": 59,
+  "n_test": 61,
+  "seed": 42,
+  "dataset": "nlpai-lab/mirage",
+  "date": "2026-10-14T22:38:57",
+  "balance": {
+    "dev_truth": {
+      "GENERATOR": 30,
+      "RETRIEVER": 22,
+      "INTERACTION": 7
+    },
+    "test_truth": {
+      "INTERACTION": 8,
+      "RETRIEVER": 23,
+      "GENERATOR": 30
+    },
+    "dev_fault": {
+      "ignore_context": 10,
+      "remove_gold": 8,
+      "adversarial_prompt": 6,
+      "truncate_gold": 9,
+      "weak_topk": 5,
+      "lost_in_middle": 7,
+      "contradiction": 7,
+      "weak_model": 7
+    },
+    "test_fault": {
+      "contradiction": 8,
+      "weak_topk": 10,
+      "lost_in_middle": 8,
+      "adversarial_prompt": 9,
+      "ignore_context": 5,
+      "remove_gold": 7,
+      "weak_model": 8,
+      "truncate_gold": 6
+    }
+  }
+}

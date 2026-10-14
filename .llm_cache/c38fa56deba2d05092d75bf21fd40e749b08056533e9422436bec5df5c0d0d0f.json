@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.99,\"rationale\":\"Includes the essential fact 'composer' from the reference, with additional non-contradictory detail.\"}", "prompt_tokens": 269, "completion_tokens": 165, "meta": {"latency_s": 5.4534595012664795}}

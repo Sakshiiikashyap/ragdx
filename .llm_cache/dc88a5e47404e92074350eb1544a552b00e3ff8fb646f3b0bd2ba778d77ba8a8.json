@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":0.99,\"rationale\":\"Candidate answer contradicts the references.\"}", "prompt_tokens": 284, "completion_tokens": 96, "meta": {"latency_s": 2.671046733856201}}

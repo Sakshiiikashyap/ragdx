@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":1.0,\"rationale\":\"The candidate does not provide the occupation, which is known to be a businessperson/businesswoman.\"}", "prompt_tokens": 293, "completion_tokens": 139, "meta": {"latency_s": 5.3572001457214355}}

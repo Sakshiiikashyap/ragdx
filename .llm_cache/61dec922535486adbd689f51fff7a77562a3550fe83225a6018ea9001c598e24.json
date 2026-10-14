@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.99,\"rationale\":\"Candidate states he is a mathematician, matching the reference.\"}", "prompt_tokens": 277, "completion_tokens": 95, "meta": {"latency_s": 3.025017261505127}}

@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.99,\"rationale\":\"The answer lists both 'actress' and 'fashion model', which are among the acceptable occupations in the references.\"}", "prompt_tokens": 292, "completion_tokens": 139, "meta": {"latency_s": 0.5360796451568604}}

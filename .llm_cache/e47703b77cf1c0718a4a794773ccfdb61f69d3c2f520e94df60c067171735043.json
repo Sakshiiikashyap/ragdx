@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":0.99,\"rationale\":\"Candidate states 'American politician', which contradicts the reference that Edwin Wallock is an actor/actress.\"}", "prompt_tokens": 275, "completion_tokens": 108, "meta": {"latency_s": 2.841350555419922}}

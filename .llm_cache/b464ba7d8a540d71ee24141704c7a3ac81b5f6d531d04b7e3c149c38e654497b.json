@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":1.0,\"rationale\":\"The candidate answer does not state the occupation, while references specify he is a dentist.\"}", "prompt_tokens": 273, "completion_tokens": 103, "meta": {"latency_s": 3.5675480365753174}}

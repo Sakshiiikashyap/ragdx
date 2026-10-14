@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":1.0,\"rationale\":\"The candidate answer does not state that Kathy Saltzman is a politician, which is the required occupation.\"}", "prompt_tokens": 280, "completion_tokens": 133, "meta": {"latency_s": 0.5340254306793213}}

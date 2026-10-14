@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":1.0,\"rationale\":\"The candidate answer does not provide the occupation, while the references state she is an actor/actress.\"}", "prompt_tokens": 276, "completion_tokens": 128, "meta": {"latency_s": 3.147897958755493}}

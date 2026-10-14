@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":0.95,\"rationale\":\"The candidate adds 'amateur', which contradicts the reference that Tsutomu Seki is a professional astronomer.\"}", "prompt_tokens": 271, "completion_tokens": 219, "meta": {"latency_s": 0.5141758918762207}}

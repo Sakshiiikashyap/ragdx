@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":0.99,\"rationale\":\"The candidate lists singer and actor, but the reference states the occupation is composer.\"}", "prompt_tokens": 269, "completion_tokens": 130, "meta": {"latency_s": 0.5845999717712402}}

@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.99,\"rationale\":\"Matches the reference occupation 'businessman'.\"}", "prompt_tokens": 290, "completion_tokens": 114, "meta": {"latency_s": 0.43194079399108887}}

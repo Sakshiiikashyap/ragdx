@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":0.99,\"rationale\":\"The candidate answer 'Journalist' contradicts the reference answers which state Elisa Bridges is an actor/actress or Playboy Playmate.\"}", "prompt_tokens": 283, "completion_tokens": 137, "meta": {"latency_s": 0.9998841285705566}}

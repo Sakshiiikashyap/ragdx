@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.99,\"rationale\":\"The candidate answer 'Actor' matches the occupation listed in the reference answers.\"}", "prompt_tokens": 272, "completion_tokens": 102, "meta": {"latency_s": 7.6618804931640625}}

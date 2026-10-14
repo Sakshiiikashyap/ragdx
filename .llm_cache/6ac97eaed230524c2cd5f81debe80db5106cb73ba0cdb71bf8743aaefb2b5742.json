@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.99,\"rationale\":\"The answer lists occupations that are all present in the reference list.\"}", "prompt_tokens": 279, "completion_tokens": 110, "meta": {"latency_s": 1.317765474319458}}

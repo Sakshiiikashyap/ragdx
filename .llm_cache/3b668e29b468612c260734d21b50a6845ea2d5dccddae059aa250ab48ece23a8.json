@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.99,\"rationale\":\"The candidate includes 'actress', matching the reference occupation, and the extra 'singer' does not contradict the reference.\"}", "prompt_tokens": 278, "completion_tokens": 162, "meta": {"latency_s": 0.6567368507385254}}

@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":0.99,\"rationale\":\"The candidate states 'Journalist', which contradicts the reference that identifies Kathy Saltzman as a politician.\"}", "prompt_tokens": 280, "completion_tokens": 123, "meta": {"latency_s": 1.4601073265075684}}

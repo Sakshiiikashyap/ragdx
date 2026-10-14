@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":1.0,\"rationale\":\"Candidate states musician, but reference says philosopher.\"}", "prompt_tokens": 266, "completion_tokens": 95, "meta": {"latency_s": 7.1347150802612305}}

@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.95,\"rationale\":\"The candidate includes the essential fact that Anthony Sharp is an actor, matching the reference.\"}", "prompt_tokens": 277, "completion_tokens": 223, "meta": {"latency_s": 1.2042016983032227}}

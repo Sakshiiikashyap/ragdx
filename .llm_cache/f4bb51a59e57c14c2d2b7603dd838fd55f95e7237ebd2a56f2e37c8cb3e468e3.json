@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.99,\"rationale\":\"The candidate includes 'Actress', which matches the reference answers; the additional 'model' does not contradict.\"}", "prompt_tokens": 285, "completion_tokens": 138, "meta": {"latency_s": 1.587900161743164}}

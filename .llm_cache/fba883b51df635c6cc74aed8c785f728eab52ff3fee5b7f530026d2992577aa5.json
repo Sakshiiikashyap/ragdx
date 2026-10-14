@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.95,\"rationale\":\"Advertising executive is a specific type of businessperson, matching the generic occupation listed in the references.\"}", "prompt_tokens": 290, "completion_tokens": 283, "meta": {"latency_s": 4.845787525177002}}

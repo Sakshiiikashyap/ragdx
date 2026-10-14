@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":0.99,\"rationale\":\"The candidate says 'Actor', but the references indicate Ai is a poet/poetess/bard.\"}", "prompt_tokens": 270, "completion_tokens": 117, "meta": {"latency_s": 4.621520042419434}}

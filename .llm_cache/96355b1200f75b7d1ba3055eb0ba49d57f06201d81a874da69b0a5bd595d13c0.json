@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.99,\"rationale\":\"The candidate answer 'musician' matches one of the acceptable occupations listed in the references.\"}", "prompt_tokens": 272, "completion_tokens": 117, "meta": {"latency_s": 5.618600845336914}}

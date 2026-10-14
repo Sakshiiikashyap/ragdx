@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":0.99,\"rationale\":\"The candidate answer 'Receptionist' does not match the reference occupation of actor/actress.\"}", "prompt_tokens": 276, "completion_tokens": 110, "meta": {"latency_s": 0.505424976348877}}

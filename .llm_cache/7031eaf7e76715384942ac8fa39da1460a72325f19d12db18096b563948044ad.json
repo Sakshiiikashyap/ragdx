@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.99,\"rationale\":\"The candidate states 'Dutch physician', which matches the essential occupation 'physician' from the references.\"}", "prompt_tokens": 284, "completion_tokens": 121, "meta": {"latency_s": 5.677049875259399}}

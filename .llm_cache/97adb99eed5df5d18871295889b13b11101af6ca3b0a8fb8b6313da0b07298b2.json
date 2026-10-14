@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.99,\"rationale\":\"Candidate lists both politician and former diplomat, matching the reference occupations.\"}", "prompt_tokens": 288, "completion_tokens": 115, "meta": {"latency_s": 3.635309934616089}}

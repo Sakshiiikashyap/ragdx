@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.99,\"rationale\":\"Matches the reference answer exactly.\"}", "prompt_tokens": 270, "completion_tokens": 84, "meta": {"latency_s": 7.793885707855225}}

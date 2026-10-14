@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":0.95,\"rationale\":\"The candidate lists a different occupation (professor) than the reference (philosopher).\"}", "prompt_tokens": 271, "completion_tokens": 157, "meta": {"latency_s": 0.6836707592010498}}

@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":0.99,\"rationale\":\"Candidate says journalist, but references state actor/actress.\"}", "prompt_tokens": 274, "completion_tokens": 104, "meta": {"latency_s": 0.5210163593292236}}

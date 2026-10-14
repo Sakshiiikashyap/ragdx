@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.95,\"rationale\":\"The candidate includes 'playwright', which matches the essential occupation in the references, and extra details do not invalidate the answer.\"}", "prompt_tokens": 284, "completion_tokens": 193, "meta": {"latency_s": 6.8601648807525635}}

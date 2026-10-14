@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.99,\"rationale\":\"The candidate answer 'Screenwriter' matches one of the acceptable reference answers.\"}", "prompt_tokens": 303, "completion_tokens": 135, "meta": {"latency_s": 1.474766492843628}}

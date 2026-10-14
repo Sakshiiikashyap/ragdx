@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.95,\"rationale\":\"It includes the essential fact that Matthew McKay is a dentist/dental surgeon, which matches the references.\"}", "prompt_tokens": 280, "completion_tokens": 274, "meta": {"latency_s": 8.007034063339233}}

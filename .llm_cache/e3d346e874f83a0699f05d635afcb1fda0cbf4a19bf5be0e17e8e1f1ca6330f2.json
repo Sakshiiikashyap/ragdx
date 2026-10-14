@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":0.99,\"rationale\":\"Candidate says journalist, but references indicate he is a politician.\"}", "prompt_tokens": 281, "completion_tokens": 116, "meta": {"latency_s": 3.623023271560669}}

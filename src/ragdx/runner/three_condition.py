@@ -81,6 +81,9 @@ def run_three_condition(cfg: RunConfig, items: list[MirageItem],
     for i, item in enumerate(items):
         retrieved = retriever.retrieve(item.query, item.chunks, top_k=cfg.top_k)
         retrieved_ids = [item.chunk_ids[r.index] for r in retrieved]
+        # D011: chunk-level ids for attribution recall (doc-level ids are
+        # degenerate in MIRAGE pools — all chunks share one mapped_id)
+        retrieved_chunk_ids = [f"{item.query_id}::c{r.index}" for r in retrieved]
         retrieved_context = "\n".join(f"{j+1}. {item.chunks[r.index]}"
                                       for j, r in enumerate(retrieved))
 
@@ -97,7 +100,7 @@ def run_three_condition(cfg: RunConfig, items: list[MirageItem],
         c1 = int(gen.em_loose(item.answers, gold_resp.text) >= 1.0)
         c2 = int(gen.em_loose(item.answers, ret_resp.text) >= 1.0)
 
-        r_at_k = ret.recall_at_k(retrieved_ids, item.gold_ids, cfg.top_k)
+        r_at_k = ret.recall_at_k(retrieved_chunk_ids, item.gold_chunk_ids, cfg.top_k)
         attr = attribute(c0, c1, c2, r=r_at_k, thresholds=thresholds)
 
         records.append({
@@ -119,7 +122,10 @@ def run_three_condition(cfg: RunConfig, items: list[MirageItem],
                           "tokens": ret_resp.prompt_tokens + ret_resp.completion_tokens,
                           "cached": ret_resp.cached,
                           "ids": retrieved_ids, "scores": [r.score for r in retrieved],
-                          "gold_ids": item.gold_ids, "recall_at_k": r_at_k},
+                          "chunk_ids": retrieved_chunk_ids,
+                          "gold_chunk_ids": item.gold_chunk_ids,
+                          "gold_index": item.gold_index,
+                          "recall_at_k": r_at_k},
             "label": attr.label.value,
             "evidence": attr.evidence,
         })

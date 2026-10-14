@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":0.95,\"rationale\":\"The reference specifies Petrus Camper was a physician, not merely a scientist.\"}", "prompt_tokens": 286, "completion_tokens": 225, "meta": {"latency_s": 2.7073915004730225}}

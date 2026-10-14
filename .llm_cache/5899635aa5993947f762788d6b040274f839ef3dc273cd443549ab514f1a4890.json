@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":1.0,\"rationale\":\"The candidate answer does not state the occupation, while the reference says it is jockey.\"}", "prompt_tokens": 267, "completion_tokens": 101, "meta": {"latency_s": 0.4738485813140869}}

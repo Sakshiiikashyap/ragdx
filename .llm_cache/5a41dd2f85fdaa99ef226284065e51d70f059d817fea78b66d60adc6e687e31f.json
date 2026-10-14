@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":1.0,\"rationale\":\"The candidate does not provide the occupation, contradicting the reference answers.\"}", "prompt_tokens": 274, "completion_tokens": 109, "meta": {"latency_s": 1.0477137565612793}}

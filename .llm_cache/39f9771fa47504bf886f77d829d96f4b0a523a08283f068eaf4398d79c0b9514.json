@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.99,\"rationale\":\"Matches the reference occupation.\"}", "prompt_tokens": 272, "completion_tokens": 87, "meta": {"latency_s": 2.7782740592956543}}

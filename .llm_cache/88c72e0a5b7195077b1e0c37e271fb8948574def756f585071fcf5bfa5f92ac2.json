@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":0.99,\"rationale\":\"The candidate says 'Anatomist', but references state he was a physician/medical doctor.\"}", "prompt_tokens": 285, "completion_tokens": 158, "meta": {"latency_s": 0.6018359661102295}}

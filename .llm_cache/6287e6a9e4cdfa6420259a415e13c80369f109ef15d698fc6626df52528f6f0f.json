@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":0.99,\"rationale\":\"The candidate answer does not provide the occupation, which is clearly stated as politician in the references.\"}", "prompt_tokens": 279, "completion_tokens": 123, "meta": {"latency_s": 6.812679767608643}}

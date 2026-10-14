@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":1.0,\"rationale\":\"The candidate does not state the occupation, which is known to be journalist.\"}", "prompt_tokens": 274, "completion_tokens": 108, "meta": {"latency_s": 3.6442408561706543}}

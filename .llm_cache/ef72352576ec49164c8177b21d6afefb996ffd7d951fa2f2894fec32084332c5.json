@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":0.99,\"rationale\":\"Candidate answer does not match the reference occupation of journalist.\"}", "prompt_tokens": 273, "completion_tokens": 103, "meta": {"latency_s": 2.2838308811187744}}

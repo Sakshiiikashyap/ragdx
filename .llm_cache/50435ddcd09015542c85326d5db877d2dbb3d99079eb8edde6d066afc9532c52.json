@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":0.9,\"rationale\":\"The candidate answer does not state the occupation as a politician, which is the essential fact in the references.\"}", "prompt_tokens": 293, "completion_tokens": 271, "meta": {"latency_s": 7.081242799758911}}

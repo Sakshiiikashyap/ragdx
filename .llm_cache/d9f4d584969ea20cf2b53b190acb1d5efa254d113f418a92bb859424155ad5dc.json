@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":0.99,\"rationale\":\"Candidate says psychologist, but references state dentist/dental surgeon.\"}", "prompt_tokens": 273, "completion_tokens": 105, "meta": {"latency_s": 3.381258964538574}}

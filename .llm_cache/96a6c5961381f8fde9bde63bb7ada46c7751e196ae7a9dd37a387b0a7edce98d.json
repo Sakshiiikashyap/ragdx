@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.99,\"rationale\":\"The candidate includes the essential fact 'actress', matching the reference answers, with additional non-contradictory detail.\"}", "prompt_tokens": 276, "completion_tokens": 129, "meta": {"latency_s": 0.4183323383331299}}

@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":1.0,\"rationale\":\"Candidate says teacher, but references state songwriter.\"}", "prompt_tokens": 271, "completion_tokens": 100, "meta": {"latency_s": 0.5571284294128418}}

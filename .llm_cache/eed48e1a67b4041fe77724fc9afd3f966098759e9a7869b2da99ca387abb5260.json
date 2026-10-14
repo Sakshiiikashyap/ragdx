@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.95,\"rationale\":\"Drummer is a type of musician, matching the reference occupation.\"}", "prompt_tokens": 272, "completion_tokens": 157, "meta": {"latency_s": 0.5820815563201904}}

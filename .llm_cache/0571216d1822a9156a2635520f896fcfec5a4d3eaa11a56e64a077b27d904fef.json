@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":0.99,\"rationale\":\"The candidate answer 'Footballer' contradicts the reference that Domingo Eyzaguirre was a politician.\"}", "prompt_tokens": 283, "completion_tokens": 121, "meta": {"latency_s": 3.7976560592651367}}

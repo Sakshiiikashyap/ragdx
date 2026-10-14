@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.99,\"rationale\":\"The candidate includes 'songwriter', matching the essential fact from the references.\"}", "prompt_tokens": 273, "completion_tokens": 132, "meta": {"latency_s": 4.672544717788696}}

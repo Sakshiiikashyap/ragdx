@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":0.99,\"rationale\":\"The candidate states he is an American football player, while all references identify him as a politician.\"}", "prompt_tokens": 280, "completion_tokens": 86, "meta": {"latency_s": 0.3770785331726074}}

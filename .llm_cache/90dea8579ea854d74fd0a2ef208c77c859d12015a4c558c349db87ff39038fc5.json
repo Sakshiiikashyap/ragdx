@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.99,\"rationale\":\"The candidate states 'Professional chef', which matches the reference answer 'chef'.\"}", "prompt_tokens": 271, "completion_tokens": 94, "meta": {"latency_s": 0.4827601909637451}}

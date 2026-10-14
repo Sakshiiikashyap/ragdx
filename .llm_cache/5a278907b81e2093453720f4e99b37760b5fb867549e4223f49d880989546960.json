@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":0.99,\"rationale\":\"Candidate states 'Architect', which contradicts the references indicating he is a lawyer/attorney.\"}", "prompt_tokens": 277, "completion_tokens": 118, "meta": {"latency_s": 0.4428279399871826}}

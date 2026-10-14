@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":0.99,\"rationale\":\"The references state the occupation is actor/actress, not composer.\"}", "prompt_tokens": 277, "completion_tokens": 118, "meta": {"latency_s": 0.5086095333099365}}

@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":0.99,\"rationale\":\"Candidate answer 'Lawyer' contradicts reference answer 'journalist'.\"}", "prompt_tokens": 273, "completion_tokens": 106, "meta": {"latency_s": 2.068258762359619}}

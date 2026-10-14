@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.99,\"rationale\":\"The candidate includes the essential fact that Marco Ameglio is a politician, matching the reference answers; the additional detail of being a businessman does not contradict the question.\"}", "prompt_tokens": 283, "completion_tokens": 176, "meta": {"latency_s": 2.690448045730591}}

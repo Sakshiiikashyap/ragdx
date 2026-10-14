@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":0.95,\"rationale\":\"Painter is not listed among the accepted occupations (cartoonist, graphic artist, animator, illustrator).\"}", "prompt_tokens": 275, "completion_tokens": 1520, "meta": {"latency_s": 2.421420097351074}}

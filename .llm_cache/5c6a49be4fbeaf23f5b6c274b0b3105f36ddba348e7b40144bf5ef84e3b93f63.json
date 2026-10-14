@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.99,\"rationale\":\"Candidate includes the essential fact 'politician' and adds nationality, which does not contradict the references.\"}", "prompt_tokens": 280, "completion_tokens": 128, "meta": {"latency_s": 1.7268691062927246}}

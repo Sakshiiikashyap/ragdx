@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":1.0,\"rationale\":\"No occupation was provided in the candidate answer.\"}", "prompt_tokens": 274, "completion_tokens": 85, "meta": {"latency_s": 7.168712615966797}}

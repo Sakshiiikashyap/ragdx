@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":0.95,\"rationale\":\"The references state his occupation is politician, not judge.\"}", "prompt_tokens": 285, "completion_tokens": 223, "meta": {"latency_s": 0.6498162746429443}}

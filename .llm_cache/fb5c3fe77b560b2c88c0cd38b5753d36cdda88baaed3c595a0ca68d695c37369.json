@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"incorrect\",\"confidence\":0.99,\"rationale\":\"Candidate answer contradicts the references, which state the occupation is a politician.\"}", "prompt_tokens": 281, "completion_tokens": 92, "meta": {"latency_s": 2.726229429244995}}

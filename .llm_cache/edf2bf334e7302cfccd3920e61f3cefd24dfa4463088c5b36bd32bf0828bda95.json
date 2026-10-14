@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.99,\"rationale\":\"Candidate matches the occupation listed in references.\"}", "prompt_tokens": 288, "completion_tokens": 98, "meta": {"latency_s": 0.508228063583374}}

@@ -1,0 +1,1 @@
+{"text": "{\"verdict\":\"correct\",\"confidence\":0.99,\"rationale\":\"The candidate answer matches the reference answer 'journalist'.\"}", "prompt_tokens": 273, "completion_tokens": 88, "meta": {"latency_s": 3.989866018295288}}
