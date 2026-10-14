@@ -17,6 +17,11 @@ echo === 3/4 dashboard ===
 echo === 4/4 paper tables ===
 %PY% -m ragdx.analysis.tables exp01
 
+echo === 5/5 compile paper ===
+cd paper
+..\tools\tectonic.exe main.tex
+cd ..
+
 echo.
-echo Open results\exp01\dashboard.html in a browser, and paper\main.tex for the paper.
+echo Open paper\main.pdf, results\exp01\dashboard.html, and see README.md.
 pause
