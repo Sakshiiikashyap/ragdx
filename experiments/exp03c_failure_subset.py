@@ -33,7 +33,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from ragdx.analysis.stats import confusion_matrix, macro_f1
 
 ROOT = Path(__file__).resolve().parents[1]
-CLASSES = ["RETRIEVER", "GENERATOR", "INTERACTION", "NONE"]
 
 
 def analyze(items: list[dict], split: str) -> dict:
@@ -73,8 +72,7 @@ def analyze(items: list[dict], split: str) -> dict:
             "accuracy": acc(fail),
             "macro_f1": round(macro_f1(f_truth, f_pred), 4) if fail else 0.0,
             "n": len(fail),
-            "confusion": confusion_matrix(f_truth, f_pred, CLASSES)
-            if fail else None,
+            "confusion": confusion_matrix(f_truth, f_pred) if fail else None,
         },
         "benign_subset": {
             "n": len(benign),
