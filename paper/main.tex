@@ -282,8 +282,13 @@ summary, and a manifest (git hash, config hash, tokens, date).
 
 \textbf{Thresholds.} $\tau_R$ is tuned on the dev split by a sweep maximizing
 macro-F1 and frozen to \texttt{configs/frozen\_thresholds.json} before any
-test evaluation (pre-registration step; the freeze file records the sweep).
-\todo{frozen value and dev sweep pending the completed exp03a run.}
+test evaluation (pre-registration step; the freeze file records the full
+sweep). The frozen value is $\tau_R=0.1$ (2026-10-15; dev macro-F1 0.2163,
+dev accuracy 0.2542 at freeze). The sweep is flat by construction at
+$k{=}1$: in-pool chunk recall takes only values in $\{0,1\}$ (the top-1
+chunk either is the gold chunk or is not), so every $\tau\in(0,1)$ yields
+identical labels and $\tau_R{=}0.1$ is the first argmax---an honest methods
+note rather than evidence of tuning sensitivity.
 
 \textbf{Baselines.} (a) \emph{recall-threshold}: label from $R$ vs.\ $\tau_R$
 only; (b) \emph{metric-rule}: $R$ plus a grounding-overlap proxy with
@@ -449,7 +454,7 @@ released repository.
 
 \subsection{Hyperparameters}
 $\tau_R$: dev-sweep $\{0.1,\dots,0.9\}$ maximizing dev macro-F1, frozen
-before test (value in \texttt{configs/frozen\_thresholds.json}); v2:
+before test ($\tau_R{=}0.1$; flat sweep noted in Sec.~VI); v2:
 $\delta$, $\theta$ per \texttt{AttributionThresholds}; $\gamma$ (metric-rule
 grounding proxy) dev-tuned; bootstrap 10k, seed 0; judge-noise sweep
 200 trials/level, seeded.
