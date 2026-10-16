@@ -1,8 +1,8 @@
 # HANDOFF — ragdx (RAG failure attribution)
 
-Last updated: 2026-10-15 (night of 14→15 Oct). Written for whoever picks this
-up next (including "future me" after sleep). Read `intent.md` (the plan) and
-`decisions.md` (append-only decision log, D001–D011) alongside this file.
+Last updated: 2026-10-16 (server restarted overnight; P4 chain relaunched).
+Read `intent.md` (the plan) and `decisions.md` (append-only decision log,
+**D001–D020**) alongside this file.
 
 ## What this is
 
@@ -32,51 +32,59 @@ CLAUDE.md rule 5). Prototype ancestry: `C:\Users\pc\Desktop\MIRAGE-main`
 
 | Part | State | Evidence |
 |---|---|---|
-| P1 judge + calibration | DONE | `results/exp01_judge/agreement.json`: judge↔EM agreement **97.3%** (150 judgments, 0 unparseable) |
+| P1 judge + calibration | DONE (+ D019 fix) | `results/exp01_judge/agreement.json`: judge↔EM agreement **97.3%** (150 judgments, 0 unparseable), **ECE 0.0131** vs EM (D019: an earlier 0.43 "overconfident" figure was a miscalculation, fixed + regression test) |
 | P2 fault injectors + FaultBench | DONE | 8 injector types + controls, 17 injector tests; `data/faultbench/` dev 59 / test 61 stratified |
-| P3 attribution v2 + baselines + stats | CODE DONE (v2 run pending) | 81 tests green; `attribution/{rule,probabilistic,baselines}.py`, `analysis/stats.py` |
-| P4 exp03a dev run + tau sweep | **IN FLIGHT — paused at 36/59 by Groq daily rate limit** (see Resume) | `results/exp03_dev/checkpoint.jsonl` (36 records, crash-safe) |
-| P4 exp03b test, exp04 baselines | WRITTEN, NOT RUN | `experiments/exp03b_faultbench_test.py`, `exp04_baselines.py` |
-| P5 robustness (exp06) | NOT STARTED | plan in intent.md |
-| P6 multi-model (exp07-lite) | NOT STARTED — models chosen: `openai/gpt-oss-120b`, `qwen/qwen3.8-27b` (verified live via Groq /models 2026-10-14) | |
-| P7 utility (exp08-lite) | NOT STARTED | |
-| P8 paper | DRAFT compiles (2pp IEEEtran, real exp01 numbers, red \todo{} markers) | `paper/main.pdf` |
-| P9 viva TUI | DONE (smoke-tested) | `viva_demo/run.bat` / `run.ps1` / `make -C viva_demo tui` |
+| P3 attribution v2 + baselines + stats | CODE DONE (v2 k-sample run deferred) | **130 tests green**; `attribution/{rule,probabilistic,baselines}.py`, `analysis/stats.py` (incl. `cohen_kappa`) |
+| P4 exp03a dev run + tau sweep | **DONE** — freeze written: **τ_r=0.1** (flat sweep, R binary at k=1; dev macro-F1 0.2163) | `configs/frozen_thresholds.json`, `results/exp03_dev/{items,eval_subset}.json` |
+| P4 exp03b test, exp04 baselines | **IN FLIGHT** — `run_phase4_chain.py` relaunched 2026-10-16 after server restart; exp03b resumes from `results/exp03/checkpoint.jsonl` | chain shell output |
+| P5 robustness (exp06) | CODE DONE, queued behind P4 (`run_phase567_chain.py`) | `experiments/exp06_robustness.py`, `faults/degrade.py`, `analysis/{noise,robustness}.py` |
+| P6 multi-model (exp07) | CODE DONE, queued — models `openai/gpt-oss-120b`, `qwen/qwen3.8-27b` (live /models gated) | `experiments/exp07_multimodel.py`, `cohen_kappa` |
+| P7 utility (exp08) | CODE DONE, queued — failure set = test c2==0 | `experiments/exp08_utility.py`, `analysis/utility.py` |
+| P8 paper | **DRAFT COMPLETE** — 10 sections + appendix, 8 verified citations, compiles clean (~5pp), **9 `\todo{}` markers** each naming its source artifact; P11 red-team done (`docs/08_RED_TEAM_REVIEW.md`) | `paper/main.pdf` |
+| P9 viva TUI | DONE (7 screens smoke-tested) | `viva_demo/run.bat` / `run.ps1` / `make -C viva_demo tui` |
 
 ## Key numbers so far (all from results/, regenerable)
 
 - **exp01 pilot** (50 MIRAGE q, gpt-oss-20b, TF-IDF top-1 over 5-chunk pool):
   acc base/gold/retrieved = 0.30/0.88/0.46; NV 0.42, CA 0.46, CI 0.08, CM 0.04;
   attribution NONE 23 / RETRIEVER 21 / GENERATOR 6; mean chunk-level R@1 = 0.46.
-- **Judge**: 97.3% agreement with EM-loose; ECE 0.43 (judge overconfident —
-  all confidences ~0.99; honest framing: rescue mechanism, not calibrated prob).
-- **FaultBench dev (36/59 done, provisional)**: rule v1 gets clean RETRIEVER
-  faults (remove_gold, weak_topk) right ~always, but MISSES most GENERATOR
-  faults (ignore/adversarial/weak_model make c1 fail → rule sees R=0 → says
-  RETRIEVER) and truncate_gold (evidence destroyed but id retrievable → NONE).
-  This is the *research finding*, not a bug: rule v1's blind spot is faults
-  that corrupt the gold condition. Expect an honest, weaker-than-hoped main
-  result — the paper must report per-fault accuracy, not just macro-F1.
+- **Judge**: 97.3% agreement with EM-loose; **ECE 0.0131 vs EM reference**
+  (D019 corrected; judge is well-calibrated against EM, still used only as a
+  rescue because EM itself is imperfect).
+- **FaultBench dev COMPLETE (59/59)**: overall rule v1 acc **0.2542**,
+  macro-F1 **0.2163**. The headline structure (D020, pre-registered before
+  test): **fault activation 29/59** (30 injections benign — answer still
+  correct); **failure-subset (c2==0) acc 0.5172** (n=29); benign-subset:
+  all 30 → NONE (rule perfectly consistent — no failure, no blame). Per-fault
+  activation: remove_gold 1.00 (acc 1.00), weak_topk 0.80 (acc 0.80),
+  lost_in_middle 0.71, adversarial/ignore_context 0.50, weak_model 0.29,
+  contradiction 0.29, **truncate_gold 0.00** (never activates at k=1).
+  Dominant activated-miss: generator-fault items with (c0,c1,c2)=(0,1,0),
+  R=0 → rule says RETRIEVER (truth GENERATOR) — information-limited for rule
+  v1; this is the paper's blind-spot finding (Sec. VIII), not a code bug.
 
-## RESUME (rate limit has reset — likely by morning)
+## RESUME (chains are automated; restart = one command each)
 
 ```powershell
 cd "C:\Users\pc\OneDrive\Documents\Default Project"
 $env:PYTHONPATH = "$PWD\src"
 $PY = "C:\Users\pc\Desktop\MIRAGE-main\.venv\Scripts\python.exe"
-& $PY experiments\exp03a_faultbench_dev.py    # resumes via cache; finishes 59/59 + tau sweep + freezes configs/frozen_thresholds.json
-& $PY experiments\exp03b_faultbench_test.py   # SINGLE-USE test split; writes results/exp03/eval.json
-& $PY experiments\exp04_baselines.py          # 3 baselines + McNemar/Holm; ~61 diagnoser calls
+& $PY experiments\run_phase4_chain.py    # exp03a(replay) -> exp03b(checkpoint resume) -> exp04; sleeps out 429s, aborts loudly after 20 attempts
+& $PY experiments\run_phase567_chain.py  # AFTER phase-4: exp06 -> exp07 -> exp08
+& $PY experiments\exp03c_failure_subset.py  # D020 secondary analysis (offline) once results/exp03/items.json exists
+& $PY -m ragdx.analysis.plots            # regenerate all paper figures from results/
 ```
 
-Cost note: exp03a/03b/04 consumed ~198k of the 200k/day Groq free tokens
-today. Each resume replays cached answers at zero cost; only unfinished tasks
-bill. If the daily limit is still hit: wait (Groq TPD resets ~24h) or reduce
-scope in `data/faultbench/*.jsonl`.
+Rate-limit notes: Groq free tier = 200k TPD on gpt-oss-20b; observed
+resets come in irregular windows (~200k each; two resets happened within
+4.4h on 10-15). Empirical cost ≈ **4.3k tokens per faultbench task**
+(3 condition chats + judge rescues). Remaining budget pressure is on exp07
+(≈525k full / 2 models) — if windows are scarce before the viva, run exp07
+on a stratified subset or one model and label it honestly in the paper
+(decision to be logged as D021 when taken). Cache makes every resume free.
 
-Then per intent.md: P5 (exp06 robustness), P6 (exp07-lite multi-model),
-P7 (exp08-lite utility), P8 (paper completion), and the v2 k-sample run
-(deferred, needs fresh tokens).
+Then: P8 fill-in — replace the 9 `\todo{}` markers in `paper/main.tex`
+(each names its source artifact), recompile, final red-team skim, push.
 
 ## Known issues / risks
 
@@ -101,24 +109,32 @@ P7 (exp08-lite utility), P8 (paper completion), and the v2 k-sample run
 
 ## Paper status
 
-`paper/main.tex` (IEEEtran, compiles clean with tectonic): abstract, intro,
-formulation, method (rule v1 + ANOMALY precedence note), experimental setup
-+ pilot results with real numbers, limitations, 1 verified citation +
-`\todo` markers for P4–P7 sections. Next: fill Sections 5–7 from
-`results/exp03*`, `exp04`, `exp06*`, `exp07*`; verify remaining citations
-(RAGChecker, GaRAGe, RAGAS, lost-in-the-middle, Zheng et al.) into
-`docs/07_CITATION_LEDGER.md` before citing; run the red-team review
-(P11 prompt in `docs/06`).
+`paper/main.tex` (IEEEtran, compiles clean with tectonic, ~5pp): full
+10-section draft + appendix — abstract/intro/related (positioning table
+T1, 8 ledger-verified citations incl. corrected MIRAGE title)/formulation/
+method (rule v1 decision table, rule v2, D019-corrected judge calibration)/
+bench (injector table T2, non-circularity note)/setup (frozen τ_r=0.1 +
+degenerate-sweep note, baseline info-parity, D020 test-reuse statement)/
+results skeleton/limitations/ethics/conclusion. **9 `\todo{}` markers**
+each names its source artifact (`results/exp03*/eval*.json`, `exp04`,
+`exp06`, `exp07`, `exp08`). Red-team review done: `docs/08_RED_TEAM_REVIEW.md`
+(10 ranked rejection reasons; fixes applied; residual viva risks listed).
+
+Fill order once chains complete: `exp03/eval.json` + `eval_subset.json` →
+§VII-A/B + abstract; `exp04/eval.json` → §VII-A baselines + McNemar;
+`exp06/eval.json` → §VII-C; `exp07/eval.json` → §VII-D; `exp08/eval.json`
+→ §VII-E; §VIII analysis + conclusion headline; embed figures (F3, F5, F6)
+from `python -m ragdx.analysis.plots`.
 
 ## Repo hygiene
 
-- Branch `main`, 5 commits (`phase-0` … `phase-3`). Small commits, message
-  format per CLAUDE.md rule 7.
-- 81 unit tests, all offline: `python -m pytest -q`.
+- Branch `main`, pushed to `https://github.com/Sakshiiikashyap/ragdx`
+  (private) @ 42258ec+ (2026-10-16). Decisions D001–D020 committed
+  (incl. D019 ECE fix, D020 pre-registration + its pre-test correction).
+- **130 unit tests**, all offline: `python -m pytest -q`.
 - Never commit: `.env` (key), `results/`, `data/raw|processed`, `tools/`,
   `paper/*.pdf`. See `.gitignore`.
-- GitHub: **pushed** → `https://github.com/Sakshiiikashyap/ragdx` (private,
-  created 2026-10-15, branch `main` @ 0f753a3+, 453 files; `.env` verified
-  absent from remote tree). Auth used the machine's stored GitHub credential;
-  per-command header only, token never written to `.git/config`. Flip to
-  public via repo Settings if desired.
+- Auth: machine's stored GitHub credential via per-command
+  `http.extraheader` only; token never written to config. `.env` verified
+  absent from remote tree (2026-10-15). Flip to public via Settings if
+  desired.
