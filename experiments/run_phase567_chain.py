@@ -16,9 +16,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from run_phase4_chain import run_phase  # noqa: E402  (same retry semantics)
 
 PHASES = [
+    # critical-first ordering (D022): cheap paper-critical phases before the
+    # expensive multi-model stretch, so another server restart mid-exp07
+    # cannot cost us exp06/exp08 results. All phases independent (need only
+    # results/exp03 + exp04, which exist).
     "experiments/exp06_robustness.py",
-    "experiments/exp07_multimodel.py",
     "experiments/exp08_utility.py",
+    "experiments/exp07_multimodel.py",
 ]
 
 
