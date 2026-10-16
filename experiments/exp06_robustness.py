@@ -57,8 +57,13 @@ def load_frozen_baseline() -> tuple[str | None, dict[str, str] | None]:
     systems = {k: v for k, v in json.loads(ev4.read_text(encoding="utf-8"))["systems"].items()
                if k != "rule_v1"}
     best = max(systems, key=lambda k: (systems[k]["macro_f1"], k))
-    preds = {it["query_id"]: it[f"pred_{best}"]
-             for it in json.loads(it4.read_text(encoding="utf-8"))}
+    # exp04 items are one row per record in records order; accept both the
+    # scalar format and the legacy bug where every pred_* held the full
+    # per-system vector (fixed 2026-10-17, see D023 - vector[i] = row i's pred)
+    preds: dict[str, str] = {}
+    for i, it in enumerate(json.loads(it4.read_text(encoding="utf-8"))):
+        p = it[f"pred_{best}"]
+        preds[it["query_id"]] = p[i] if isinstance(p, list) else p
     print(f"best baseline from exp04: {best} "
           f"(macro-F1 {systems[best]['macro_f1']:.3f})")
     return best, preds

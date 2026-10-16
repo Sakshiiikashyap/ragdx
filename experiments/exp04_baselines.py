@@ -99,10 +99,13 @@ def main() -> None:
     od = ROOT / "results" / "exp04"
     od.mkdir(parents=True, exist_ok=True)
     (od / "eval.json").write_text(json.dumps(out, indent=2), encoding="utf-8")
+    # one row per record: pred_<name> is THAT record's scalar prediction
+    # (D023: the original comprehension stored each system's full vector)
     (od / "items.json").write_text(json.dumps(
         [{"query_id": r["query_id"], "truth": t,
-          **{f"pred_{n}": p for n, p in systems.items()}}
-         for r, t in zip(records, truth)], indent=2), encoding="utf-8")
+          **{f"pred_{n}": preds[i] for n, preds in systems.items()}}
+         for i, (r, t) in enumerate(zip(records, truth))], indent=2),
+        encoding="utf-8")
     (od / "manifest.json").write_text(json.dumps({
         "exp_id": "exp04", "n": len(records), "tau_r": tau, "gamma": gamma,
         "date": time.strftime("%Y-%m-%dT%H:%M:%S")}, indent=2), encoding="utf-8")

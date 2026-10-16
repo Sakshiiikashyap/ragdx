@@ -128,3 +128,10 @@ The first D020 entry cited dev numbers from memory before executing the diagnost
 ## D022 - P567 chain reordered critical-first (2026-10-17 00:13, after 3rd silent server restart)
 Decision: run_phase567_chain order changed exp06 -> exp07 -> exp08 to exp06 -> exp08 -> exp07.
 Rationale: two server restarts (10-16 13:44, and between 10-16 16:25 and 10-17 00:12) killed background chains silently before any phase completed. exp06 (~120k tok) + exp08 (~40k tok) are cheap and fill paper Sec VII-C/E; exp07 (~525k tok, 2 models) is the stretch that monopolises rate-limit windows. Phases are independent (only need results/exp03+exp04), so ordering is free; critical-first caps the blast radius of the next restart. If exp07 never completes, paper keeps the pre-written honest \todo/future-work framing (P6b contingency) or gets scoped per the standing subset/one-model fallback.
+
+## D023 - exp04 items.json vector-serialization bug found by exp06 (2026-10-17 00:40)
+Decision/fix: exp04_baselines.py items writer stored each system's FULL 61-prediction vector under every row's pred_<name> key (dict comprehension iterated systems.items() instead of the per-row prediction). exp06 was the first consumer and crashed in macro_f1 ("unhashable type: list") after finishing all 366 LLM task-runs (all calls cached; relaunch replays free). Three-part fix:
+1. results/exp04/items.json repaired in place to scalar per-row predictions, VERIFIED by recomputing all four systems' accuracy/macro-F1 from the repaired file and matching eval.json exactly (0.3115/0.1612, 0.3443/0.1641, 0.3443/0.1641, 0.3934/0.1818) plus query_id/truth alignment vs exp03 (legacy backup kept locally). eval.json untouched -> no paper number affected.
+2. exp04_baselines.py writer fixed to emit the per-row scalar (future runs correct).
+3. exp06 load_frozen_baseline accepts both scalar and legacy vector format (vector[i] aligned by records order).
+Pre-flight: exp07/exp08 first-run code paths checked offline (schemas, signatures, synthetic noise/utility smokes) before relaunch so the chain cannot hard-abort twice.
