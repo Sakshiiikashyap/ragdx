@@ -36,9 +36,16 @@ LLM judge agrees with exact match on 97.3\% of 150 verdicts (and corrects 3
 of its false negatives), well calibrated against that imperfect reference
 (ECE 0.013), so we treat it as a rescue mechanism rather than a
 calibration source.
-\todo{main-study attribution accuracy vs.\ baselines, robustness, and
-multi-model numbers pending exp03--exp08 finalization; all tables and figures
-are generated from \texttt{results/} artifacts by committed scripts.}
+On RAG-FaultBench (test, $n{=}61$, frozen thresholds), attribution reaches
+0.312 accuracy (95\% CI 0.197--0.426) against injected ground truth, not
+significantly different from recall-threshold (0.344), a metric-rule
+baseline (0.344), or an LLM diagnoser (0.393; McNemar--Holm $p\ge0.68$).
+Decomposition explains the gap: only 59\% of injections produce an
+observed failure, benign ones are correctly reported as ``no failure,''
+and on the 36 activated failures accuracy rises to 0.528 (replicating dev:
+0.517). \todo{robustness, multi-model, and repair-utility numbers pending
+exp06--exp08 completion; all tables and figures are generated from
+\texttt{results/} artifacts by committed scripts.}
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -290,6 +297,15 @@ chunk either is the gold chunk or is not), so every $\tau\in(0,1)$ yields
 identical labels and $\tau_R{=}0.1$ is the first argmax---an honest methods
 note rather than evidence of tuning sensitivity.
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=.8\linewidth]{figures/tau_sweep.png}
+\caption{Dev macro-F1 across the $\tau_R$ sweep (F1; from
+\texttt{configs/frozen\_thresholds.json}): flat because in-pool recall at
+$k{=}1$ is binary.}
+\label{fig:tausweep}
+\end{figure}
+
 \textbf{Baselines.} (a) \emph{recall-threshold}: label from $R$ vs.\ $\tau_R$
 only; (b) \emph{metric-rule}: $R$ plus a grounding-overlap proxy with
 threshold $\gamma$ tuned on dev (RAGChecker-inspired, not their package);
@@ -346,19 +362,108 @@ in the pilot---no ground-truth failure sources exist there.
 \section{Results}
 \subsection{Main study: attribution vs.\ baselines (RQ1, RQ2)}
 \label{sec:main}
-\todo{fill from \texttt{results/exp03/eval.json} (test split, frozen
-$\tau_R$): accuracy, bootstrap CI, macro-F1, per-class P/R/F1, confusion
-matrix (F3), per-fault accuracy---and from
-\texttt{results/exp04/eval.json}: baseline accuracies, McNemar $b/c$ counts
-and Holm-adjusted $p$ vs.\ rule v1 (T3).}
+Table~\ref{tab:main} reports the test split ($n{=}61$) under the frozen
+$\tau_R{=}0.1$. Rule v1 reaches accuracy \textbf{0.312} (bootstrap 95\% CI
+[0.197, 0.426], 10{,}000 resamples, seed 0) and macro-F1 0.161. All three
+baselines land in the same band---recall-threshold 0.344 [0.230, 0.459],
+metric-rule 0.344 [0.230, 0.459], LLM-diagnoser 0.393 [0.279, 0.525]---and
+\textbf{no pairwise difference is significant} (McNemar exact with Holm:
+$p_{\text{holm}}=1.00$, $1.00$, $0.68$; the two rule-based baselines
+coincide on every reported metric on this split). Per-class, rule v1 is
+strongest on \textsc{Retriever} (precision 0.467, recall 0.609, F1 0.528),
+weaker on \textsc{Generator} (precision 0.833, recall 0.167, F1 0.278), and
+never recovers \textsc{Interaction} (F1 0.0; support 8).
+
+\begin{table}[t]
+\caption{Main study (test, $n{=}61$, frozen $\tau_R{=}0.1$): accuracy with
+bootstrap 95\% CI and macro-F1 (top); McNemar exact vs.\ rule v1 with
+Holm correction, $b$/$c$ = items correct only for ours / only for the
+baseline (bottom). T3.}
+\label{tab:main}
+\small
+\begin{tabular}{lcc}
+\toprule
+System & Accuracy [95\% CI] & macro-F1 \\
+\midrule
+Rule v1 (ours) & 0.312 [0.197, 0.426] & 0.161 \\
+Recall-threshold & 0.344 [0.230, 0.459] & 0.164 \\
+Metric-rule & 0.344 [0.230, 0.459] & 0.164 \\
+LLM-diagnoser & 0.393 [0.279, 0.525] & 0.182 \\
+\midrule
+vs.\ recall-th. & $b{=}5$, $c{=}7$, $p_{\text{holm}}{=}1.00$ & \\
+vs.\ metric-rule & $b{=}5$, $c{=}7$, $p_{\text{holm}}{=}1.00$ & \\
+vs.\ diagnoser & $b{=}3$, $c{=}8$, $p_{\text{holm}}{=}0.68$ & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=.95\linewidth]{figures/baselines.png}
+\caption{Attribution accuracy of rule v1 and the three baselines on the
+test split (F2; from \texttt{results/exp04/eval.json}). Overlapping
+intervals and McNemar $p\ge0.68$: no method separates.}
+\label{fig:baselines}
+\end{figure}
+
+\textbf{Decomposition (D020, pre-registered).} Headline accuracy mixes two
+phenomena: only \textbf{36/61 (59.0\%)} of test injections produced an
+\emph{observed} failure ($c_2{=}0$); the other 25 were benign (the answer
+remained correct). All 25 benign items receive a non-accusatory label (24
+\textsc{None}, 1 \textsc{Anomaly})---correct behavior for attribution, but
+scored as errors against the intervention label. On the \textbf{36 activated
+failures, accuracy is 0.528} (matching dev: 0.517, $n{=}29$), i.e.,
+attribution roughly doubles when there is a failure to attribute. We report
+both numbers because they answer different questions: ``which component was
+sabotaged'' vs.\ ``which component explains this wrong answer.''
 
 \subsection{Per-fault analysis}
 \label{sec:perfault}
-\todo{from \texttt{results/exp03/eval.json} per-fault accuracy + dev records:
-the rule is expected to be strong on retrieval-only faults whose gold
-condition remains intact (remove\_gold, weak\_topk: $c{=}010$) and weakest
-where the fault also degrades the gold witness (generator faults and
-truncate\_gold); quantify after the final run rather than assert now.}
+Table~\ref{tab:perfault} breaks test accuracy down by injector, alongside
+the activation rate (share of injections that actually broke the retrieved
+answer) and dev accuracy for replication. The pattern is structured, not
+noisy: \emph{remove\_gold} (activation 0.86, acc 0.857) and \emph{weak\_topk}
+(0.70, 0.600)---clean retrieval faults whose gold witness stays
+intact---are handled best, while \emph{contradiction} (0.00) and
+\emph{lost\_in\_middle} (0.62 activation, 0.00 acc) fail completely;
+dev shows the same ordering (remove\_gold 1.00, weak\_topk 0.80, both
+near 0 for contradiction/lost\_in\_middle). \emph{truncate\_gold}
+activates in only 0.33 of test cases (0.00 on dev): cutting the gold to
+30\% of its characters usually leaves enough of the fact for the answer to
+survive at $k{=}1$.
+
+\begin{table}[t]
+\caption{Per-fault test accuracy, activation rate (test/dev), and dev
+accuracy (T4). Sources: \texttt{results/exp03/eval.json},
+\texttt{eval\_subset.json} (both splits).}
+\label{tab:perfault}
+\small
+\begin{tabular}{llccc}
+\toprule
+Fault & Truth & Acc (test) & Act.\ (t/d) & Acc (dev) \\
+\midrule
+remove\_gold & RET & 0.857 & 0.86/1.00 & 1.000 \\
+weak\_topk & RET & 0.600 & 0.70/0.80 & 0.800 \\
+truncate\_gold & RET & 0.333 & 0.33/0.00 & 0.000 \\
+adversarial\_prompt & GEN & 0.333 & 0.67/0.50 & 0.000 \\
+ignore\_context & GEN & 0.200 & 0.80/0.50 & 0.100 \\
+weak\_model & GEN & 0.125 & 0.75/0.29 & 0.143 \\
+lost\_in\_middle & GEN & 0.000 & 0.62/0.71 & 0.000 \\
+contradiction & INT & 0.000 & 0.00/0.29 & 0.143 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=.95\linewidth]{figures/confusion.png}
+\caption{Rule v1 confusion matrix on the test split (truth rows,
+predictions columns; F3; from \texttt{results/exp03/eval.json}). The
+dominant off-diagonal mass is \textsc{Generator}$\to$\textsc{Retriever}
+(16/30) and $\to$\textsc{None} (9/30); \textsc{Interaction} is predicted
+\textsc{None} in 7/8 cases.}
+\label{fig:confusion}
+\end{figure}
 
 \subsection{Robustness to gold degradation and judge noise (RQ3-lite)}
 \label{sec:robust}
@@ -387,16 +492,53 @@ reported separately (F6b).}
 
 \section{Analysis and Discussion}
 \label{sec:analysis}
-\todo{finalize after the main run. Expected structure: (a) the gold-witness
-assumption---rule v1's \textsc{Retriever}/\textsc{Interaction} split only
-fires when $c_1{=}1$, so faults that also break the gold condition route to
-\textsc{Generator}/\textsc{None} regardless of $R$; (b) the
-\textsc{None}-before-\textsc{Retriever} priority and its interaction with
-truncate\_gold-style faults that keep the gold id retrievable while
-destroying the evidence; (c) parametric-knowledge leakage ($c_0{=}1$) as a
-ceiling on retriever attribution; (d) cost: attribution costs two extra
-generations per question plus one recall computation, i.e., a constant
-overhead with no training.}
+\textbf{(a) Activation is the first-class quantity.} Across both splits,
+roughly half of all injections never produce an observed failure (dev
+29/59, test 36/61)---the fault is in the pipeline but the answer survives.
+Activation is injector-specific and replicates across splits
+(remove\_gold 1.00/0.86, weak\_topk 0.80/0.70 vs.\ contradiction
+0.29/0.00, truncate\_gold 0.00/0.33; dev/test). Whenever $c_2{=}1$, the
+rule emits \textsc{None} (dev 30/30; test 24/25 plus one \textsc{Anomaly}
+from the $c{=}001$ row): it never blames a component when the system
+succeeded. Scoring benign injections as attribution errors conflates
+``the intervention was inert'' with ``the diagnosis was wrong''---hence
+the pre-registered D020 split (Sec.~\ref{sec:main}).
+
+\textbf{(b) The generator--retriever ambiguity under $R{=}0$.} The
+dominant error (16 of 30 \textsc{Generator} test items $\to$
+\textsc{Retriever}) has a precise observable signature:
+$(c_0,c_1,c_2)=(0,1,0)$ with $R{=}0$. From behavior alone this is exactly
+the retrieval-failure signature---the gold condition works, the retrieved
+answer fails, the gold chunk is absent from the top-1---and un-faulted
+pilot retrieval already misses the gold 54\% of the time (recall@1
+$=0.46$), so $R{=}0$ is common without any fault. Rule v1 has no access to
+the texts or the injector, so it \emph{cannot} in principle separate
+``retrieval missed the fact'' from ``generator would have failed anyway,''
+and where both are true, blaming the retriever is not unreasonable. The
+reverse route mirrors this: \textsc{Generator} is emitted only when the
+gold condition itself fails ($c_1{=}0$; recall 0.167), i.e., rule v1 can
+diagnose generator faults only when they also break the gold
+witness---the gold-witness assumption identified before the run.
+
+\textbf{(c) Position faults are two phenomena in one label.}
+\emph{lost\_in\_middle} and \emph{contradiction} land mostly in benign
+cases or in \textsc{None} (7/8 test contradictions); when activated, they
+collapse into (b). The $k{=}1$ operating point makes interaction failures
+structurally rare (Sec.~\ref{sec:pilot}); recovering them needs multi-chunk
+contexts or a text-aware rule (future work).
+
+\textbf{(d) Baselines do not rescue the problem.} A free-form LLM
+diagnoser reading the raw texts scores 0.393 vs.\ rule v1's 0.312
+($p_{\text{holm}}{=}0.68$): neither additional text access nor behavioral
+probing separates on $n{=}61$. The contribution here is therefore the
+\emph{validated measurement apparatus}---activation-aware scoring,
+pre-registration, and the decomposition---not a leaderboard win.
+
+\textbf{(e) Cost.} Attribution adds two generations per question plus one
+chunk-recall computation; the full 61-item test pass cost 116{,}813
+tokens ($\approx$1.9k/item, manifest in \texttt{results/exp03/}), the
+diagnoser baseline one call per item, and all re-analyses were free
+(committed cache). No training, no index building, no human labels.
 
 \section{Limitations and Ethics}
 \textbf{Limitations.} (1) \emph{Injected vs.\ natural}: fault injection
@@ -428,11 +570,18 @@ replay made all re-analyses free.
 We presented a controlled-condition attribution method for RAG failures and
 validated---rather than assumed---its measurement apparatus: an auditable
 decision rule with abstention, a fault-injected benchmark with known failure
-sources, dev-only threshold freezing, and stress tests that expose the
-method's dependence on a trustworthy gold witness.
-\todo{summarize final headline numbers after exp03--exp08 complete.}
-Future work: $k$-sample v2 with risk--coverage, corpus-scale retrieval,
-cross-dataset transfer, and human-annotated natural-failure labels.
+sources, dev-only threshold freezing, activation-aware scoring pre-registered
+from dev, and stress tests that expose the method's dependence on a
+trustworthy gold witness. On test, attribution accuracy is 0.312 against the
+intervention label but 0.528 on activated failures (36/61), with generator
+faults under missed retrieval the systematic ambiguity; no baseline
+separates from rule v1 ($p_{\text{holm}}\ge0.68$). The honest contribution
+is a measurement apparatus that makes such decomposition possible, plus
+quantified limits (gold-witness dependence, $k{=}1$ interaction blindness)
+rather than a leaderboard claim. Future work: $k$-sample v2 with
+risk--coverage, multi-chunk operating points for interaction faults,
+corpus-scale retrieval, cross-dataset transfer, and human-annotated
+natural-failure labels.
 
 \appendix
 \subsection{Prompts}
