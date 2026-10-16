@@ -138,7 +138,8 @@ rather than assuming them.
 ground truth and abstention (T1).}
 \label{tab:positioning}
 \small
-\begin{tabular}{lccccc}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lcccc}
 \toprule
 Framework & src.\ label & gold ref. & validated GT & abstain \\
 \midrule
@@ -161,12 +162,13 @@ answer)~\cite{park2025mirage}. We observe the triple
 $c_0=c(\varnothing;q)$, $c_1=c(D_{\text{gold}};q)$, $c_2=c(D_{\text{ret}};q)$
 and the chunk-level gold recall $R=\mathrm{recall@}k$ of the retrieved set
 against the gold chunk. Attribution is the map
-$g:(c_0,c_1,c_2,R)\rightarrow L$ with
-$L\in\{\textsc{Retriever},\textsc{Generator},\textsc{Interaction},
-\textsc{None},\textsc{Question-Issue},\textsc{Anomaly},\textsc{Abstain}\}$.
+$g:(c_0,c_1,c_2,R)\rightarrow L$, where $L$ ranges over the labels
+\{\textsc{Retriever}, \textsc{Generator}, \textsc{Interaction},
+\textsc{None}, \textsc{Question-Issue}, \textsc{Anomaly},
+\textsc{Abstain}\}.
 Attribution is evidence-based diagnosis, not a causal proof; the repair
 study (Sec.~\ref{sec:utility}) provides the intervention-style check that
-diagnosis-\\matched repairs outperform mismatched ones.
+diagnosis-matched repairs outperform mismatched ones.
 
 \section{Method}
 \subsection{Three-condition protocol}
@@ -191,9 +193,10 @@ Table~\ref{tab:rule}); $\tau_R$ is tuned on the dev split only and frozen
 before test.
 
 \begin{table}[t]
-\caption{Rule v1 decision table (exact implementation semantics).}
+\caption{Rule v1 decision table (exact implementation semantics; T2).}
 \label{tab:rule}
-\small
+\footnotesize
+\setlength{\tabcolsep}{2pt}
 \begin{tabular}{clll}
 \toprule
 \# & condition & label & rationale \\
@@ -249,9 +252,10 @@ semantics. Faults that cannot apply (e.g., pool too small) fall back to a
 control task and are excluded from fault statistics.
 
 \begin{table}[t]
-\caption{RAG-FaultBench injector catalogue (T2).}
+\caption{RAG-FaultBench injector catalogue (T3).}
 \label{tab:injectors}
-\small
+\footnotesize
+\setlength{\tabcolsep}{3pt}
 \begin{tabular}{llll}
 \toprule
 fault & component & construction & truth \\
@@ -260,8 +264,8 @@ remove\_gold & ret. & gold row dropped from pool & RET \\
 weak\_topk & ret. & worst-ranked chunk as context & RET \\
 truncate\_gold & ret. & gold cut to first 30\% chars & RET \\
 ignore\_context & gen. & system order to ignore context & GEN \\
-adversarial\_prompt & gen. & ``context may be fabricated'' note & GEN \\
-weak\_model & gen. & smaller answerer model substituted & GEN \\
+adversarial\_prompt & gen. & ``context may be fabricated'' & GEN \\
+weak\_model & gen. & smaller answer model substituted & GEN \\
 lost\_in\_middle & gen. & gold buried among distractors & GEN \\
 contradiction & inter. & contradictory chunk beside gold & INT \\
 \bottomrule
@@ -378,7 +382,7 @@ never recovers \textsc{Interaction} (F1 0.0; support 8).
 \caption{Main study (test, $n{=}61$, frozen $\tau_R{=}0.1$): accuracy with
 bootstrap 95\% CI and macro-F1 (top); McNemar exact vs.\ rule v1 with
 Holm correction, $b$/$c$ = items correct only for ours / only for the
-baseline (bottom). T3.}
+baseline (bottom). T4.}
 \label{tab:main}
 \small
 \begin{tabular}{lcc}
@@ -434,10 +438,11 @@ survive at $k{=}1$.
 
 \begin{table}[t]
 \caption{Per-fault test accuracy, activation rate (test/dev), and dev
-accuracy (T4). Sources: \texttt{results/exp03/eval.json},
+accuracy (T5). Sources: \texttt{results/exp03/eval.json},
 \texttt{eval\_subset.json} (both splits).}
 \label{tab:perfault}
 \small
+\setlength{\tabcolsep}{4pt}
 \begin{tabular}{llccc}
 \toprule
 Fault & Truth & Acc (test) & Act.\ (t/d) & Acc (dev) \\
@@ -467,11 +472,43 @@ dominant off-diagonal mass is \textsc{Generator}$\to$\textsc{Retriever}
 
 \subsection{Robustness to gold degradation and judge noise (RQ3-lite)}
 \label{sec:robust}
-\todo{from \texttt{results/exp06/eval.json}: rule accuracy/macro-F1 at
-clean/drop25/drop50/drop75/near-miss/pseudo-gold with per-level $c_1$ rates
-and skip counts (pseudo-gold availability varies), vs.\ the frozen baseline
-(which is gold-independent and therefore flat); judge-noise flip sweep
-($p\in\{0,.05,.1,.15,.2,.3\}$, 200 seeded trials) means$\pm$std. Figure F5.}
+We progressively corrupt the gold reference the judge compares against
+(drop $25/50/75\%$ of its chunks, substitute a near-miss row, or the best
+available pseudo-gold) and re-attribute under the frozen $\tau_R$
+(Fig.~\ref{fig:degradation}); the clean level reproduces the headline
+exactly ($0.3115$, $n{=}61$). As designed, the judge's context-relevance
+bit $c_1$ degrades monotonically with gold quality ($0.885$, $0.787$,
+$0.623$, $0.541$, $0.148$; pseudo-gold $0.464$---33/61 tasks have no
+valid substitute, $n{=}28$). Aggregate rule accuracy does \emph{not}:
+$0.3115$, $0.2787$, $0.2295$, $0.3279$, $0.3279$ ($0.3214$ pseudo-gold);
+macro-F1 is likewise non-monotone ($0.161$, $0.139$, $0.125$, $0.181$,
+$0.136$; $0.187$ pseudo-gold), even exceeding its clean value at
+$-75\%$ (Fig.~\ref{fig:degradation}).
+The apparent recovery at $-75\%$/near-miss is label-shift artifact, not
+robustness: predictions migrate toward the majority \textsc{Generator}
+class, whose accuracy climbs $0.167\!\to\!0.633$ while \textsc{Retriever}
+accuracy collapses $0.609\!\to\!0.043$; \textsc{Interaction} is never
+recovered at any level. Class-conditional accuracy and the $c_1$ rate are
+the faithful degradation signals; the aggregate hides the collapse. The
+frozen LLM-diagnoser baseline is flat at $0.3934$ \emph{by construction}:
+its predictions are recorded on clean inputs and never see the degraded
+gold (only the pseudo-gold record subset differs: $0.3214$ on $n{=}28$).
+\begin{figure}[t]
+\centering
+\includegraphics[width=.95\linewidth]{figures/degradation.png}
+\caption{Macro-F1 of rule v1 and the frozen LLM-diagnoser reference per
+gold-degradation level (F5; from \texttt{results/exp06/eval.json}). The
+baseline is flat by construction (it never sees the degraded gold); rule
+v1's non-monotone curve masks class-conditional collapse.}
+\label{fig:degradation}
+\end{figure}
+For judge noise, flipping each recorded condition bit independently with
+probability $p$ (200 seeded trials) degrades accuracy gently:
+$0.3115\!\to\!0.3039\,(\pm0.029)\!\to\!0.2977\,(\pm0.041)\!\to\!
+0.2905\,(\pm0.044)\!\to\!0.2866\,(\pm0.050)\!\to\!0.2707\,(\pm0.049)$ at
+$p{=}0.30$---only $4.1$ points, although ${\sim}66\%$ of records carry at
+least one flipped bit. The threshold rule absorbs independent verdict
+noise far better than structured evidence corruption.
 
 \subsection{Multi-model transfer (RQ4-lite)}
 \label{sec:multimodel}
