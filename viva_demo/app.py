@@ -13,6 +13,8 @@ import json
 import sys
 from pathlib import Path
 
+from rich.markup import escape
+
 # legacy Windows consoles default to cp1252; force UTF-8 stdio with fallback
 for _stream in (sys.stdout, sys.stderr):
     if _stream is not None and hasattr(_stream, "reconfigure"):
@@ -108,16 +110,16 @@ def screen_questions() -> None:
                             ("retrieved", "Retrieved context")):
             ok = "OK" if it[cond]["em_loose"] else "XX"
             style = "green" if it[cond]["em_loose"] else "red"
-            body = it[cond]["text"].strip()
+            body = escape(it[cond]["text"].strip()[:400])
             if cond == "retrieved":
                 body += (f"\n[dim]R@1={it[cond]['recall_at_k']:.2f}  "
                          f"gold_idx={it.get('gold_index')}[/dim]")
-            tbl.add_row(title, f"[{style}]{ok}[/{style}] {body[:400]}")
-        header = (f"[bold]{idx+1}/{len(items)}[/bold]  {it['question']}\n"
-                  f"[dim]expected:[/dim] {', '.join(it['answers'][:3])}")
+            tbl.add_row(title, f"[{style}]{ok}[/{style}] {body}")
+        header = (f"[bold]{idx+1}/{len(items)}[/bold]  {escape(it['question'])}\n"
+                  f"[dim]expected:[/dim] {escape(', '.join(it['answers'][:3]))}")
         lab = it["label"]
         footer = (f"\n[bold]attribution:[/bold] [{LABEL_STYLE.get(lab, 'white')}]{lab}"
-                  f"[/]  [dim]{it['evidence'].get('reason', '')}[/dim]")
+                  f"[/]  [dim]{escape(it['evidence'].get('reason', ''))}[/dim]")
         console.print(Panel(tbl, title=header, subtitle=footer, border_style="cyan"))
         cmd = Prompt.ask("[dim]n/p[/dim] next/prev - q back", default="n")
         if cmd == "q":
@@ -175,8 +177,9 @@ def screen_baselines() -> None:
     tbl.add_column("macro-F1", justify="right"); tbl.add_column("95% CI (acc)")
     for name, s in e4["systems"].items():
         ci = s["bootstrap_95ci_acc"]
-        style = "bold green" if name == "rule_v1" else ""
-        tbl.add_row(f"[{style}]{name}[/{style}]", fmt_pct(s["accuracy"]),
+        label = (f"[bold green]{escape(name)}[/]" if name == "rule_v1"
+                 else escape(name))
+        tbl.add_row(label, fmt_pct(s["accuracy"]),
                     f"{s['macro_f1']:.3f}", f"{ci[0]:.2f}-{ci[1]:.2f}")
     console.print(tbl)
     mc = Table(title="McNemar vs rule_v1 (ours)", header_style="bold cyan")
@@ -184,9 +187,9 @@ def screen_baselines() -> None:
     mc.add_column("baseline-only right", justify="right")
     mc.add_column("p (Holm)", justify="right")
     for name, s in e4["mcnemar_vs_rule_v1"].items():
-        verdict = "significant" if s["p_holm"] < 0.05 else "n.s."
-        mc.add_row(name, str(s["b_ours_only"]), str(s["c_baseline_only"]),
-                   f"{s['p_holm']:.4f} [{verdict}]")
+        verdict = "SIGNIFICANT" if s["p_holm"] < 0.05 else "n.s."
+        mc.add_row(escape(name), str(s["b_ours_only"]), str(s["c_baseline_only"]),
+                   f"{s['p_holm']:.4f} ({verdict})")
     console.print(mc)
 
 
