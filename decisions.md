@@ -143,3 +143,39 @@ the Groq budget was tight before the viva) was never triggered: after the
 exp07 ran FULL — both extra models (openai/gpt-oss-120b, qwen/qwen3.8-27b)
 available via the live /models gate, none skipped, 851s, no scoping caveat
 needed in the paper.
+
+## D024 - exp03_v2 k-sample protocol, pre-registered 2026-10-22 (BEFORE test data existed)
+Purpose: fill the paper's only remaining `\todo` — live evaluation of the
+probabilistic attribution rule v2 (Wilson/Wald CIs + ABSTAIN) and the
+risk-coverage figure F4, deferred since D-list era for API cost; windows
+opened after the 10-17 -> 10-22 gap, so the study runs now.
+
+Protocol (fixed BEFORE collecting any v2 data):
+- k=5 samples per condition at T=0.7 (non-degenerate sampling; T=0 would make
+  the k samples identical). EM-loose per sample, NO judge rescue - rates are
+  EM estimates; judge x5 would ~triple cost and the judge is itself calibrated
+  to EM (exp05).
+- Condition prompts byte-identical to the exp03b protocol (fault styles
+  included); retrieval is deterministic TF-IDF, so R is recomputed offline.
+- tau_R frozen at 0.1 (v1 dev tuning, reused). delta/theta grid-tuned on DEV
+  only: delta in {0.0,0.1,0.2,0.3,0.4} x theta in {0.3,0.4,0.5,0.6,0.7}.
+- Selection objective (lexicographic): dev selective accuracy on decided
+  items -> coverage -> macro-F1 over decided.
+- Test pass: exactly ONE, with the dev-frozen (delta*, theta*, tau_R).
+  This does not touch the v1 single-use discipline (exp03b) - v1 thresholds
+  were frozen long ago and are not re-tuned.
+- Pre-registered metrics (eval.json): coverage, selective accuracy (decided),
+  overall accuracy (abstain=wrong), macro-F1 over decided, D020 failure
+  subset (c2==0, n=36) coverage + selective accuracy, v1 comparison
+  (v1 overall acc + v1 acc restricted to the v2-decided subset), and the
+  risk-coverage curve via caller-side confidence (RETRIEVER/INTERACTION =
+  Wald-difference lower bound; GENERATOR = theta - p1; NONE = p2 - theta;
+  ABSTAIN = -1, sorted last). F4 reads results/exp03_v2/risk_coverage.json
+  (already the plots.py contract).
+- Honesty note to carry into the paper: abstention trades coverage for
+  precision; overall accuracy (abstain=wrong) is reported alongside so the
+  trade cannot be hidden.
+Cost estimate: 59 dev + 61 test questions x 3 conditions x 5 samples =
+1,800 calls, ~1.0-1.3M tokens. Runner is resume-safe (per-question
+checkpointing; server restarts lose nothing) and 429-tolerant via the
+run_phase retry chain.
