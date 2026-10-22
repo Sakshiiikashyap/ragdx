@@ -43,9 +43,12 @@ baseline (0.344), or an LLM diagnoser (0.393; McNemar--Holm $p\ge0.68$).
 Decomposition explains the gap: only 59\% of injections produce an
 observed failure, benign ones are correctly reported as ``no failure,''
 and on the 36 activated failures accuracy rises to 0.528 (replicating dev:
-0.517). \todo{robustness, multi-model, and repair-utility numbers pending
-exp06--exp08 completion; all tables and figures are generated from
-\texttt{results/} artifacts by committed scripts.}
+0.517). Stress tests complete the picture: aggregate accuracy is
+non-monotone under gold degradation (class-conditional collapse is the
+faithful signal), the frozen threshold transfers to two more model
+families (Cohen's $\kappa{\approx}0.83$), and diagnosis-matched repairs
+decisively outperform misapplied ones ($p{=}1.1{\times}10^{-5}$) but not
+a strong universal top-$k$ repair---delimiting where attribution pays.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -512,20 +515,74 @@ noise far better than structured evidence corruption.
 
 \subsection{Multi-model transfer (RQ4-lite)}
 \label{sec:multimodel}
-\todo{from \texttt{results/exp07/eval.json}: per-model macro-F1 under the
-same frozen $\tau_R$ (threshold transfer, no per-model tuning) for
-\texttt{gpt-oss-120b} and \texttt{qwen3.8-27b} vs.\ the main model, plus
-label-agreement and Cohen's $\kappa$ vs.\ the main run (T5, F6). Single
-dataset, multi-model---honest scope.}
+We rerun the full test protocol with two additional Groq model
+families---\texttt{gpt-oss-120b} and \texttt{qwen3.8-27b}---under the
+\emph{same} frozen $\tau_R{=}0.1$: threshold transfer is pre-registered,
+no per-model tuning is performed, and availability is checked against the
+live \texttt{/models} list at runtime (both were available, none skipped;
+Table~\ref{tab:multimodel}, Fig.~\ref{fig:multimodel}). Accuracy stays
+uniformly low (0.246--0.312) and macro-F1 0.119--0.168: no model rescues
+attribution, consistent with finding (d)---at $k{=}1$ the task, not the
+generator, is hard. More positively, labels are \emph{stable} across
+families: both extra models agree with the main run on 90.2\% of items
+(Cohen's $\kappa{=}0.826$ and $0.829$)---decisions follow the evidence
+bits and the rule, not generator idiosyncrasies.
+\emph{Weak\_model}-fault tasks override the answerer by definition and
+are identical across all three models, mildly inflating agreement for
+that injector; all models share one provider and one dataset---honest
+scope for a transfer check, not a cross-corpus claim.
+\begin{table}[t]
+\caption{Attribution under the shared frozen $\tau_R{=}0.1$ (T6; from
+\texttt{results/exp07/eval.json}). Agreement/$\kappa$ are vs.\ the main
+run.}
+\label{tab:multimodel}
+\small
+\begin{tabular}{lccrr}
+\toprule
+Model & acc & macro-F1 & agr. & $\kappa$ \\
+\midrule
+\texttt{gpt-oss-20b} (main) & 0.312 & 0.161 & --- & --- \\
+\texttt{gpt-oss-120b} & 0.279 & 0.168 & 0.902 & 0.826 \\
+\texttt{qwen3.8-27b} & 0.246 & 0.119 & 0.902 & 0.829 \\
+\bottomrule
+\end{tabular}
+\end{table}
+\begin{figure}[t]
+\centering
+\includegraphics[width=.95\linewidth]{figures/multimodel.png}
+\caption{Per-model attribution macro-F1 under the shared frozen
+threshold (F6; from \texttt{results/exp07/eval.json}).}
+\label{fig:multimodel}
+\end{figure}
 
 \subsection{Utility of diagnosis-matched repairs (RQ5-lite)}
 \label{sec:utility}
-\todo{from \texttt{results/exp08/eval.json}: on the failure set
-($c_2{=}0$), gains of our-fix (top-$k$3 for predicted \textsc{Retriever},
-stricter grounding prompt for predicted \textsc{Generator}) vs.\ seeded
-random-fix and always-one-component baselines, with paired sign tests
-(McNemar exact, Holm). The gold-rerank repair is oracle-assisted and
-reported separately (F6b).}
+We apply three repairs to the 36 activated failures ($c_2{=}0$):
+top-3 TF-IDF retrieval (deployable), a stricter grounding prompt over the
+current context (deployable), and oracle gold-rerank (gold forced first
+when in the pool: 28/36). Our attribution label selects the repair
+(top-$k$3 for \textsc{Retriever}, grounding for \textsc{Generator}),
+gaining 0.556 accuracy on the failure set vs.\ 0.389 for seeded random
+selection ($b{=}7$, $c{=}1$, $p_{\text{holm}}{=}0.14$, n.s.\
+at $n{=}36$) and 0.028 for universal grounding ($b{=}19$, $c{=}0$,
+$p_{\text{holm}}{=}1.1{\times}10^{-5}$; Fig.~\ref{fig:utility}). But a
+\emph{blind} always-top-$k$3 policy scores 0.667---numerically above the
+matched policy ($b{=}0$, $c{=}4$, $p_{\text{holm}}{=}0.14$, n.s.): the
+failure set is retrieval-dominated (the rule itself selects top-$k$3 for
+30/36 items), so the dominant single repair is close to optimal on this
+distribution. The oracle ceiling is 0.722: ${\sim}28\%$ of failures
+resist even gold-first context. Attribution's demonstrated utility is
+thus \emph{avoiding misapplied repairs} and supplying reviewable
+evidence; superiority over the best single heuristic is not established
+at this $n$.
+\begin{figure}[t]
+\centering
+\includegraphics[width=.95\linewidth]{figures/utility.png}
+\caption{Accuracy gains on the 36-item activated failure set (F7; from
+\texttt{results/exp08/eval.json}). \emph{our\_fix} = repair selected by
+the frozen attribution label; \emph{gold\_rerank} is oracle-assisted.}
+\label{fig:utility}
+\end{figure}
 
 \section{Analysis and Discussion}
 \label{sec:analysis}
@@ -574,8 +631,19 @@ pre-registration, and the decomposition---not a leaderboard win.
 \textbf{(e) Cost.} Attribution adds two generations per question plus one
 chunk-recall computation; the full 61-item test pass cost 116{,}813
 tokens ($\approx$1.9k/item, manifest in \texttt{results/exp03/}), the
-diagnoser baseline one call per item, and all re-analyses were free
-(committed cache). No training, no index building, no human labels.
+diagnoser baseline one call per item, the repair study 78{,}447 tokens,
+and all re-analyses were free (committed cache). No training, no index
+building, no human labels.
+
+\textbf{(f) Where attribution earns its place.}
+Sections~\ref{sec:multimodel} and~\ref{sec:utility} bound the practical
+value: labels are stable across generators ($\kappa{\approx}0.83$) and
+matched repairs decisively avoid the failure mode of misapplied repairs
+($p_{\text{holm}}{=}1.1{\times}10^{-5}$), yet a dominant single heuristic
+(always-top-$k$3) matches the matched policy on this retrieval-heavy
+failure set. Attribution pays when the repair menu is heterogeneous; on
+repair-monoculture distributions, measure first---the apparatus tells you
+that too.
 
 \section{Limitations and Ethics}
 \textbf{Limitations.} (1) \emph{Injected vs.\ natural}: fault injection
@@ -612,7 +680,12 @@ from dev, and stress tests that expose the method's dependence on a
 trustworthy gold witness. On test, attribution accuracy is 0.312 against the
 intervention label but 0.528 on activated failures (36/61), with generator
 faults under missed retrieval the systematic ambiguity; no baseline
-separates from rule v1 ($p_{\text{holm}}\ge0.68$). The honest contribution
+separates from rule v1 ($p_{\text{holm}}\ge0.68$). Attribution labels
+nevertheless transfer across three model families under one frozen
+threshold ($\kappa{\approx}0.83$), and diagnosis-matched repairs avoid
+the failures of misapplied ones ($p_{\text{holm}}{=}1.1{\times}10^{-5}$)
+while a dominant single repair remains competitive---delimiting where
+attribution pays. The honest contribution
 is a measurement apparatus that makes such decomposition possible, plus
 quantified limits (gold-witness dependence, $k{=}1$ interaction blindness)
 rather than a leaderboard claim. Future work: $k$-sample v2 with

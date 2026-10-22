@@ -37,10 +37,10 @@ CLAUDE.md rule 5). Prototype ancestry: `C:\Users\pc\Desktop\MIRAGE-main`
 | P3 attribution v2 + baselines + stats | CODE DONE (v2 k-sample run deferred) | **130 tests green**; `attribution/{rule,probabilistic,baselines}.py`, `analysis/stats.py` (incl. `cohen_kappa`) |
 | P4 exp03a dev run + tau sweep | **DONE** — freeze written: **τ_r=0.1** (flat sweep, R binary at k=1; dev macro-F1 0.2163) | `configs/frozen_thresholds.json`, `results/exp03_dev/{items,eval_subset}.json` |
 | P4 exp03b test, exp04 baselines | **IN FLIGHT** — `run_phase4_chain.py` relaunched 2026-10-16 after server restart; exp03b resumes from `results/exp03/checkpoint.jsonl` | chain shell output |
-| P5 robustness (exp06) | CODE DONE, queued behind P4 (`run_phase567_chain.py`) | `experiments/exp06_robustness.py`, `faults/degrade.py`, `analysis/{noise,robustness}.py` |
-| P6 multi-model (exp07) | CODE DONE, queued — models `openai/gpt-oss-120b`, `qwen/qwen3.8-27b` (live /models gated) | `experiments/exp07_multimodel.py`, `cohen_kappa` |
-| P7 utility (exp08) | CODE DONE, queued — failure set = test c2==0 | `experiments/exp08_utility.py`, `analysis/utility.py` |
-| P8 paper | **DRAFT COMPLETE** — 10 sections + appendix, 8 verified citations, compiles clean (~5pp), **9 `\todo{}` markers** each naming its source artifact; P11 red-team done (`docs/08_RED_TEAM_REVIEW.md`) | `paper/main.pdf` |
+| P5 robustness (exp06) | **DONE 2026-10-17** — non-monotone aggregate (label-shift artifact), c1 monotone, judge noise −4.1pt@p=.30; D023 crash fixed via cache replay | `experiments/exp06_robustness.py`, `results/exp06/` |
+| P6 multi-model (exp07) | **DONE 2026-10-22** — 120b 0.279/0.168, qwen3.8-27b 0.246/0.119, agreement 0.902, κ≈0.83, none skipped | `experiments/exp07_multimodel.py`, `results/exp07/` |
+| P7 utility (exp08) | **DONE 2026-10-22** — our_fix 0.556; beats grounding (p=1.1e-5), n.s. vs random and vs always-topk3 (0.667); oracle 0.722 | `experiments/exp08_utility.py`, `results/exp08/` |
+| P8 paper | **COMPLETE 2026-10-22** — 7pp, 0 errors/overfulls, all sections filled, 1 intentional todo (deferred k-sample); P11 red-team doc current | `paper/main.pdf` |
 | P9 viva TUI | DONE (7 screens smoke-tested) | `viva_demo/run.bat` / `run.ps1` / `make -C viva_demo tui` |
 
 ## Key numbers so far (all from results/, regenerable)
@@ -109,22 +109,15 @@ Then: P8 fill-in — replace the 9 `\todo{}` markers in `paper/main.tex`
 
 ## Paper status
 
-`paper/main.tex` (IEEEtran, compiles clean with tectonic, ~5pp): full
-10-section draft + appendix — abstract/intro/related (positioning table
-T1, 8 ledger-verified citations incl. corrected MIRAGE title)/formulation/
-method (rule v1 decision table, rule v2, D019-corrected judge calibration)/
-bench (injector table T2, non-circularity note)/setup (frozen τ_r=0.1 +
-degenerate-sweep note, baseline info-parity, D020 test-reuse statement)/
-results skeleton/limitations/ethics/conclusion. **9 `\todo{}` markers**
-each names its source artifact (`results/exp03*/eval*.json`, `exp04`,
-`exp06`, `exp07`, `exp08`). Red-team review done: `docs/08_RED_TEAM_REVIEW.md`
-(10 ranked rejection reasons; fixes applied; residual viva risks listed).
-
-Fill order once chains complete: `exp03/eval.json` + `eval_subset.json` →
-§VII-A/B + abstract; `exp04/eval.json` → §VII-A baselines + McNemar;
-`exp06/eval.json` → §VII-C; `exp07/eval.json` → §VII-D; `exp08/eval.json`
-→ §VII-E; §VIII analysis + conclusion headline; embed figures (F3, F5, F6)
-from `python -m ragdx.analysis.plots`.
+`paper/main.tex` (IEEEtran, tectonic, **7 pp**, 0 errors/overfulls/citation
+warnings; target ~8): COMPLETE — all experiment sections filled from
+`results/` artifacts (2026-10-22). Tables T1–T6, figures F1–F3 + F5–F7
+embedded; F4 (risk–coverage) deferred with rule v2 (`results/exp03_v2/`
+pending, the single remaining intentional `\todo`). Abstract merged;
+analysis findings (a)–(f); conclusion updated with multi-model + repair
+results. Layout fixes: T1–T3 table sizing, 130pt math-set reflow,
+consistent T-numbering. Red-team review: `docs/08_RED_TEAM_REVIEW.md`
+(10 ranked rejection reasons; fixes applied).
 
 ## Repo hygiene
 

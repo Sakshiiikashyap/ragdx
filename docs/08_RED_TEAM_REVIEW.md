@@ -4,6 +4,17 @@ Date: 2026-10-15. Stance: skeptical ACL reviewer. Scope: full draft as of
 commit b30f351+ (results sections still `\todo`-marked pending exp03–exp08
 completion). Ranked by severity; each item lists the fix and its status.
 
+**2026-10-22 re-check (final state, 7 pp):** all results sections are now
+filled from `results/*/eval.json` (main study, D020 decomposition,
+baselines+McNemar, exp06 robustness incl. the honest non-monotone-aggregate
+explanation, exp07 multi-model κ≈0.83, exp08 utility incl. the honest
+"always-topk3 is competitive, n.s." result). Item 1 is resolved. Layout:
+0 overfulls (4 were fixed: 130pt math-set, T1–T3 tables); T-numbering made
+self-consistent (T1–T6, F1–F3, F5–F7; F4 deferred with rule v2). The paper
+reports every negative/null result (no baseline separates; matched repair
+does not beat the dominant single repair) — the residual viva risks below
+are unchanged and are now answerable with data rather than promises.
+
 ## Ranked rejection reasons
 
 1. **No primary results in the draft (fatal at submission).**

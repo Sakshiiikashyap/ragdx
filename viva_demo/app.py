@@ -86,6 +86,23 @@ def screen_overview() -> None:
     if e4:
         rows = "  ".join(f"{k}:{v['macro_f1']:.2f}" for k, v in e4["systems"].items())
         table.add_row("exp04 baselines", str(e4["n"]), f"macro-F1 -> {rows}")
+    e6 = load_json("results/exp06/eval.json")
+    if e6:
+        r1, c1 = e6["by_system"]["rule_v1"], e6["c1_rate"]
+        table.add_row("exp06 robustness", str(e6["n_records"]),
+                      f"acc clean/d50/near = {r1['clean']['accuracy']:.3f}/{r1['drop50']['accuracy']:.3f}"
+                      f"/{r1['near_miss']['accuracy']:.3f}  c1 {c1['clean']:.2f}->{c1['near_miss']:.2f}")
+    e7 = load_json("results/exp07/eval.json")
+    if e7:
+        rows7 = "  ".join(f"{m.split('/')[-1]}:{s['macro_f1']:.2f}"
+                          for m, s in e7["models"].items())
+        kappas = [st["kappa_vs_main"] for st in e7["stability"].values()]
+        extra = f"  kappa {min(kappas):.2f}-{max(kappas):.2f}" if kappas else ""
+        table.add_row("exp07 multi-model", str(e7["n"]), f"macro-F1 -> {rows7}{extra}")
+    e8 = load_json("results/exp08/eval.json")
+    if e8:
+        rows8 = "  ".join(f"{f['name']}:{f['gain']:.2f}" for f in e8["fixes"])
+        table.add_row("exp08 utility", str(e8["n_failure"]), f"gains -> {rows8}")
     console.print(table)
     m = load_json("results/exp03/manifest.json") or load_json("results/exp01/manifest.json")
     if m:
