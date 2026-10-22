@@ -23,3 +23,4 @@ tools/
 paper/*.pdf
 paper/tectonic_log.txt
 tectonic_log.txt
+paper/main.log
