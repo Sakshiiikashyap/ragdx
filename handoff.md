@@ -76,15 +76,15 @@ $PY = "C:\Users\pc\Desktop\MIRAGE-main\.venv\Scripts\python.exe"
 ```
 
 Rate-limit notes: Groq free tier = 200k TPD on gpt-oss-20b; observed
-resets come in irregular windows (~200k each; two resets happened within
-4.4h on 10-15). Empirical cost ≈ **4.3k tokens per faultbench task**
-(3 condition chats + judge rescues). Remaining budget pressure is on exp07
-(≈525k full / 2 models) — if windows are scarce before the viva, run exp07
-on a stratified subset or one model and label it honestly in the paper
-(decision to be logged as D021 when taken). Cache makes every resume free.
+resets come in irregular windows. Empirical cost ≈ **4.3k tokens per
+faultbench task**. **D021 closed as moot (2026-10-22):** windows opened
+after the 10-17→10-22 gap, exp07 ran FULL (both models, none skipped,
+851s) — no subsetting or labelling caveat was needed. Cache made every
+resume free (four server restarts, zero work lost).
 
-Then: P8 fill-in — replace the 9 `\todo{}` markers in `paper/main.tex`
-(each names its source artifact), recompile, final red-team skim, push.
+P5–P8 are complete (see status tables above); no fill-in steps remain.
+The only open item by design is the deferred rule-v2 k-sample study
+(→ F4 risk–coverage, `results/exp03_v2/` pending, cost-bound).
 
 ## Known issues / risks
 

@@ -135,3 +135,11 @@ Decision/fix: exp04_baselines.py items writer stored each system's FULL 61-predi
 2. exp04_baselines.py writer fixed to emit the per-row scalar (future runs correct).
 3. exp06 load_frozen_baseline accepts both scalar and legacy vector format (vector[i] aligned by records order).
 Pre-flight: exp07/exp08 first-run code paths checked offline (schemas, signatures, synthetic noise/utility smokes) before relaunch so the chain cannot hard-abort twice.
+
+## D021 closed - MOOT (2026-10-22)
+The pending fallback (scope exp07 to a stratified subset or one extra model if
+the Groq budget was tight before the viva) was never triggered: after the
+2026-10-17 -> 10-22 server-restart gap, daily windows were wide open and
+exp07 ran FULL — both extra models (openai/gpt-oss-120b, qwen/qwen3.8-27b)
+available via the live /models gate, none skipped, 851s, no scoping caveat
+needed in the paper.
