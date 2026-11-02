@@ -1,0 +1,9 @@
+{
+  "tau_r": 0.1,
+  "delta": 0.0,
+  "theta": 0.3,
+  "k": 5,
+  "temperature": 0.7,
+  "tuned_on": "dev",
+  "objective": "selective acc -> coverage -> macro-F1"
+}
