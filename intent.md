@@ -41,7 +41,7 @@ multi-dataset corpus-scale generalization (RQ4) beyond multi-model, utility RQ5-
 - [x] `experiments/exp03a_faultbench_dev.py` (dev run + tau sweep + freeze) — **59/59, frozen τ_r=0.1** (flat sweep, R binary at k=1; dev macro-F1 0.2163)
 - [x] `experiments/exp03b_faultbench_test.py` (single-use test + eval report) — **test acc 0.3115 [0.197, 0.426], macro-F1 0.1612**; per-fault + confusion written
 - [x] `experiments/exp04_baselines.py` (3 baselines + McNemar/Holm) — recall 0.3443 / metric-rule 0.3443 / LLM-diagnoser 0.3934, **no significant diffs** (p_holm ≥ 0.68)
-- [x] D020 activation/failure-subset analysis (`exp03c`): activation 36/61, **failure-subset acc 0.5278** (dev 0.5172 replication); figures: tau_sweep, confusion, per_fault, baselines (risk-coverage waits on deferred v2)
+- [x] D020 activation/failure-subset analysis (`exp03c`): activation 36/61, **failure-subset acc 0.5278** (dev 0.5172 replication); figures: tau_sweep, confusion, per_fault, baselines (risk-coverage F4 later generated 2026-11-02 from exp03_v2)
 
 ### P5 Robustness exp06 (RQ3-lite) — status: [x] DONE (2026-10-17; paper filled 2026-10-22)
 - [x] Gold degradation: drop 25/50/75% of gold chunk content (even-stride word deletion, D013); near-miss replacement; SEARA-style pseudo-gold (answer-containing chunk from pool as surrogate gold; skips reported) — `faults/degrade.py`, 20 tests
@@ -62,7 +62,7 @@ multi-dataset corpus-scale generalization (RQ4) beyond multi-model, utility RQ5-
 ### P8 Paper completion — status: [x] DONE (2026-10-22): 7pp, 0 errors/overfulls, 1 intentional `\todo`
 - [x] Verify remaining citations via web → ledger `docs/07_CITATION_LEDGER.md` (2026-10-15)
 - [x] Sections 1–10 + appendix; all experiment results filled from results/ artifacts (main study, D020, per-fault, baselines+McNemar, exp06, exp07, exp08); abstract merged; analysis (a)–(f); conclusion updated
-- [x] Compile with `tools/tectonic.exe` — clean (0 errors/overfulls/citation warnings; **7 pp**, target ~8); fixed 4 hidden overfulls (130pt math set, T1–T3 tables) + T-numbering consistency (T2 rule, T3 injectors, T4 main, T5 per-fault, T6 multimodel); figures F1–F3, F5–F7 embedded (F4 risk-coverage deferred with v2, k-sample todo remains by design)
+- [x] Compile with `tools/tectonic.exe` — clean (0 errors/overfulls/citation warnings; **7 pp**, target ~8); fixed 4 hidden overfulls (130pt math set, T1–T3 tables) + T-numbering consistency (T2 rule, T3 injectors, T4 main, T5 per-fault, T6 multimodel); figures F1–F3, F5–F7 embedded (F4 risk-coverage + last todo filled 2026-11-02, see P10)
 - **Accept:** ✓ complete `paper/main.pdf` ≤ venue page limit + appendix; zero unverified citations
 
 ### P9 Viva TUI demo (`viva_demo/`) — status: [x] DONE (2026-10-14)
@@ -74,6 +74,17 @@ multi-dataset corpus-scale generalization (RQ4) beyond multi-model, utility RQ5-
 ### P6b/P7b contingency
 If rate limits or time block P5–P7: mark affected paper sections `\todo` with explicit
 "future work" framing — never drop planned experiments silently.
+
+### P10 — rule v2 k-sample study (exp03_v2) — COMPLETE 2026-11-02
+The contingency was never needed for P5–P8; this part fills the paper's last todo.
+- [x] D024 pre-registered BEFORE any v2 test data existed (k=5, T=0.7, EM-loose only, no judge; τ_R=0.1 reused; dev-only δ/θ grid; lexicographic objective; single test pass; metrics fixed in advance)
+- [x] `experiments/exp03v2_ksample.py` resume-safe collection: dev 59/59, test 61/61 (spanned the 5th server restart mid-test — per-question checkpointing + `.llm_cache` lost nothing)
+- [x] Dev-tuned and frozen: **δ*=0.0, θ*=0.3** (`configs/frozen_thresholds_v2.json`)
+- [x] Test (`results/exp03_v2/eval.json`): **coverage 1.0 (0 abstains)**, acc **0.279** / macro-F1 0.162 vs v1 0.312/0.161 (McNemar exact b=5, c=3, **p=0.73 n.s.**); failure-subset 0.417 vs v1 0.528
+- [x] Risk–coverage (F4): RC@0.51 → 0.484, RC@0.28 → 0.588, most-confident quintile → 0.75 (`results/exp03_v2/risk_coverage.json`, `paper/figures/risk_coverage.png`)
+- [x] Paper: last `\todo` replaced by §VII-F (`sec:v2result`) + F4; limitations (6), conclusion future-work, hyperparameters updated; recompile **8 pp, 0 errors/overfulls/citations, 0 todos**
+- [x] Demo overview row `exp03_v2`; `docs/08` reason 9 resolved; handoff P10 row added
+- **Accept:** `grep -c '\todo{' paper/main.tex` = 0 ✓; F4 embedded ✓; 130 tests green ✓
 
 ---
 

@@ -103,6 +103,14 @@ def screen_overview() -> None:
     if e8:
         rows8 = "  ".join(f"{f['name']}:{f['gain']:.2f}" for f in e8["fixes"])
         table.add_row("exp08 utility", str(e8["n_failure"]), f"gains -> {rows8}")
+    e3v2 = load_json("results/exp03_v2/eval.json")
+    if e3v2:
+        t = e3v2["test"]
+        table.add_row(
+            f"exp03_v2 rule v2 (k={e3v2['k']})", str(t["n"]),
+            f"acc {fmt_pct(t['overall_accuracy'])}  coverage "
+            f"{fmt_pct(t['coverage'])}  (d*={e3v2['delta']}, th*={e3v2['theta']})"
+            f"  failure-sub {fmt_pct(e3v2['test_failure_subset']['selective_accuracy'])}")
     console.print(table)
     m = load_json("results/exp03/manifest.json") or load_json("results/exp01/manifest.json")
     if m:

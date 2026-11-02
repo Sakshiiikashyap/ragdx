@@ -10,7 +10,8 @@ baselines+McNemar, exp06 robustness incl. the honest non-monotone-aggregate
 explanation, exp07 multi-model κ≈0.83, exp08 utility incl. the honest
 "always-topk3 is competitive, n.s." result). Item 1 is resolved. Layout:
 0 overfulls (4 were fixed: 130pt math-set, T1–T3 tables); T-numbering made
-self-consistent (T1–T6, F1–F3, F5–F7; F4 deferred with rule v2). The paper
+self-consistent (T1–T6, F1–F7 all embedded; F4 = risk–coverage from
+exp03_v2, added 2026-11-02). The paper
 reports every negative/null result (no baseline separates; matched repair
 does not beat the dominant single repair) — the residual viva risks below
 are unchanged and are now answerable with data rather than promises.
@@ -64,8 +65,12 @@ are unchanged and are now answerable with data rather than promises.
    argument reported as a finding §VI-B; bench supplies the fault).
 
 9. **Rule v2 / risk–coverage unevaluated** (k-sampling deferred for API
-   cost). → PENDING/DEFERRED: marked `\todo` + explicit limitation §IX;
-   not dropped silently (intent P6b contingency honored).
+   cost). → **RESOLVED 2026-11-02** (D024 pre-registered, ran live):
+   k=5, T=0.7, dev-tuned δ*=0.0/θ*=0.3; honest outcome — 0 abstains at the
+   frozen point (coverage 1.0), accuracy 0.279 vs v1 0.312 (McNemar
+   p=0.73 n.s.), confidence ranking gives selective value (RC@0.51 → 0.484,
+   top-quintile → 0.75). Filled as §VII-F + F4; todo removed; limitation
+   (6) rewritten to the measured coarse-CI fact.
 
 10. **Reproducibility under model drift**: API-hosted generators change.
     → FIXED IN TEXT (§IX): manifests pin model/date/git-hash; committed
@@ -77,6 +82,15 @@ are unchanged and are now answerable with data rather than promises.
 - §V non-circularity sentence; §VI information-parity + test-reuse
   statements + INTERACTION caveat; appendix diagnoser prompt reproduction.
 - Recompile: clean (0 undefined citations/refs, no overfull >10pt).
+
+## Re-check 2026-11-02 (post-exp03_v2)
+- Reason 9 RESOLVED: rule v2 ran live (D024 pre-registered); F4 embedded;
+  paper at 8 pp, **0 todos**, 0 errors/overfulls.
+- New honest result to be able to narrate: v2 never abstains at k=5
+  (0/61), accuracy n.s. below v1 (p=0.73), but confidence ranking buys
+  selective prediction (RC@0.51 → 0.484). Frame as "measured coarse-CI
+  limit", not as a failed method — limitation (6) says exactly this.
+- Demo overview now lists all 9 experiment artifacts incl. exp03_v2.
 
 ## Residual risks for the viva
 - If exp03 test accuracy lands low, frame as "validated measurement

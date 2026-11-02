@@ -179,3 +179,17 @@ Cost estimate: 59 dev + 61 test questions x 3 conditions x 5 samples =
 1,800 calls, ~1.0-1.3M tokens. Runner is resume-safe (per-question
 checkpointing; server restarts lose nothing) and 429-tolerant via the
 run_phase retry chain.
+
+### D024 OUTCOME (2026-11-02)
+Dev 59/59 + test 61/61 collected (test resumed across a server restart via
+per-question checkpointing; cache made completed calls free). Dev-tuned:
+delta*=0.0, theta*=0.3 (objective: selective acc -> coverage -> macro-F1).
+Test at the frozen point: coverage 1.0 (0 abstains), accuracy 0.2787,
+macro-F1 0.1619 vs v1 0.3115/0.1612 (McNemar exact b=5, c=3, p=0.727,
+n.s.); failure-subset (n=36) 0.4167 vs v1 0.5278. Risk-coverage curve
+(filled): answered accuracy 0.484 at coverage 0.51, 0.588 at 0.28, 0.75 at
+the top quintile, 0.279 at full coverage. Honest reading: at k=5 the T=0.7
+samples are so consistent that rates sit at 0/1, CI separation either fires
+or is moot, and the abstention knob never engages - the pre-registered
+metrics caught this (both selective AND overall accuracy reported). Paper:
+last \todo -> section VII-F + F4; 8pp, 0 todos, 0 errors/overfulls.

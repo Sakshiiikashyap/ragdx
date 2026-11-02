@@ -34,14 +34,15 @@ CLAUDE.md rule 5). Prototype ancestry: `C:\Users\pc\Desktop\MIRAGE-main`
 |---|---|---|
 | P1 judge + calibration | DONE (+ D019 fix) | `results/exp01_judge/agreement.json`: judge↔EM agreement **97.3%** (150 judgments, 0 unparseable), **ECE 0.0131** vs EM (D019: an earlier 0.43 "overconfident" figure was a miscalculation, fixed + regression test) |
 | P2 fault injectors + FaultBench | DONE | 8 injector types + controls, 17 injector tests; `data/faultbench/` dev 59 / test 61 stratified |
-| P3 attribution v2 + baselines + stats | CODE DONE (v2 k-sample run deferred) | **130 tests green**; `attribution/{rule,probabilistic,baselines}.py`, `analysis/stats.py` (incl. `cohen_kappa`) |
+| P3 attribution v2 + baselines + stats | CODE DONE + **v2 RUN DONE 2026-11-02** | **130 tests green**; `attribution/{rule,probabilistic,baselines}.py`, `analysis/stats.py` (incl. `cohen_kappa`); live k-sample: `experiments/exp03v2_ksample.py` |
 | P4 exp03a dev run + tau sweep | **DONE** — freeze written: **τ_r=0.1** (flat sweep, R binary at k=1; dev macro-F1 0.2163) | `configs/frozen_thresholds.json`, `results/exp03_dev/{items,eval_subset}.json` |
-| P4 exp03b test, exp04 baselines | **IN FLIGHT** — `run_phase4_chain.py` relaunched 2026-10-16 after server restart; exp03b resumes from `results/exp03/checkpoint.jsonl` | chain shell output |
+| P4 exp03b test, exp04 baselines | **DONE** — test single-use consumed 2026-10-16 (never rerun), exp04 baselines complete | `results/exp03/`, `results/exp04/` |
 | P5 robustness (exp06) | **DONE 2026-10-17** — non-monotone aggregate (label-shift artifact), c1 monotone, judge noise −4.1pt@p=.30; D023 crash fixed via cache replay | `experiments/exp06_robustness.py`, `results/exp06/` |
 | P6 multi-model (exp07) | **DONE 2026-10-22** — 120b 0.279/0.168, qwen3.8-27b 0.246/0.119, agreement 0.902, κ≈0.83, none skipped | `experiments/exp07_multimodel.py`, `results/exp07/` |
 | P7 utility (exp08) | **DONE 2026-10-22** — our_fix 0.556; beats grounding (p=1.1e-5), n.s. vs random and vs always-topk3 (0.667); oracle 0.722 | `experiments/exp08_utility.py`, `results/exp08/` |
-| P8 paper | **COMPLETE 2026-10-22** — 7pp, 0 errors/overfulls, all sections filled, 1 intentional todo (deferred k-sample); P11 red-team doc current | `paper/main.pdf` |
-| P9 viva TUI | DONE (7 screens smoke-tested) | `viva_demo/run.bat` / `run.ps1` / `make -C viva_demo tui` |
+| P8 paper | **COMPLETE 2026-11-02** — 8pp, 0 errors/overfulls, all sections filled, **0 todos** (last one filled with exp03_v2 §VII-F + F4); P11 red-team doc current | `paper/main.pdf` |
+| P9 viva TUI | DONE (8 screens incl. exp03_v2 row, smoke-tested) | `viva_demo/run.bat` / `run.ps1` / `make -C viva_demo tui` |
+| P10 rule v2 k-sample (exp03_v2) | **DONE 2026-11-02** (D024) — dev-tuned δ*=0.0/θ*=0.3, k=5, T=0.7; test coverage **1.0** (0 abstains), acc 0.279 vs v1 0.312 (McNemar b=5/c=3, p=0.73 n.s.); failure-sub 0.417 vs v1 0.528; risk-coverage: RC@0.51 → 0.484, top-quintile → 0.75 | `experiments/exp03v2_ksample.py`, `results/exp03_v2/` |
 
 ## Key numbers so far (all from results/, regenerable)
 
@@ -82,18 +83,19 @@ after the 10-17→10-22 gap, exp07 ran FULL (both models, none skipped,
 851s) — no subsetting or labelling caveat was needed. Cache made every
 resume free (four server restarts, zero work lost).
 
-P5–P8 are complete (see status tables above); no fill-in steps remain.
-The only open item by design is the deferred rule-v2 k-sample study
-(→ F4 risk–coverage, `results/exp03_v2/` pending, cost-bound).
+P5–P10 are complete (see status tables above); no fill-in steps remain.
+The rule-v2 k-sample study finished 2026-11-02 (D024) — the paper's last
+`\todo` is filled (§VII-F + F4); nothing open by design.
 
 ## Known issues / risks
 
 1. **Rate limit**: Groq free tier = 200k tokens/day for gpt-oss-20b. All
    planned runs share it. Cache aggressively (already the default) and prefer
    replay over re-run.
-2. **v2 (probabilistic) never executed live** — module + tests exist, but
-   k-sample data was deferred for cost; risk-coverage figure is `\todo` in
-   the paper until then.
+2. ~~**v2 (probabilistic) never executed live**~~ — **resolved 2026-11-02**:
+   exp03_v2 ran live (k=5, T=0.7, D024 pre-registered); honest outcome:
+   0 abstains at the frozen point, accuracy n.s. below v1, confidence
+   ranking carries the selective value (paper §VII-F, F4 embedded).
 3. **Baseline (b) is "RAGChecker-inspired"**, not their official package
    (D008) — wording in the paper must stay honest about this.
 4. **Human annotation (O9 full)** never happened (no second annotator);
@@ -109,11 +111,11 @@ The only open item by design is the deferred rule-v2 k-sample study
 
 ## Paper status
 
-`paper/main.tex` (IEEEtran, tectonic, **7 pp**, 0 errors/overfulls/citation
+`paper/main.tex` (IEEEtran, tectonic, **8 pp**, 0 errors/overfulls/citation
 warnings; target ~8): COMPLETE — all experiment sections filled from
-`results/` artifacts (2026-10-22). Tables T1–T6, figures F1–F3 + F5–F7
-embedded; F4 (risk–coverage) deferred with rule v2 (`results/exp03_v2/`
-pending, the single remaining intentional `\todo`). Abstract merged;
+`results/` artifacts (2026-11-02). Tables T1–T6, figures F1–F4 + F5–F7
+all embedded (F4 = risk–coverage from `results/exp03_v2/`, filled
+2026-11-02); **0 `\todo`s**. Abstract merged;
 analysis findings (a)–(f); conclusion updated with multi-model + repair
 results. Layout fixes: T1–T3 table sizing, 130pt math-set reflow,
 consistent T-numbering. Red-team review: `docs/08_RED_TEAM_REVIEW.md`

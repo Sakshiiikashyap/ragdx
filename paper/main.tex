@@ -231,9 +231,8 @@ $(p_1-p_2)>\delta$ with the CI excluding 0, v2 emits \textsc{Retriever}
 ($R<\tau_R$) or \textsc{Interaction}; else \textsc{Generator} if
 $p_1<\theta$, \textsc{None} if $p_2\ge\theta$, and \textsc{Abstain}
 otherwise. ABSTAIN items become the control knob of a risk--coverage curve
-(selective accuracy vs.\ coverage). \todo{the $k$-sample data collection is
-deferred for API-cost reasons; risk--coverage figure (F4) pending
-\texttt{results/exp03\_v2/}.}
+(selective accuracy vs.\ coverage), evaluated once on the test split in
+Sec.~\ref{sec:v2result}.
 
 \subsection{Imperfect-gold handling}
 The gold condition is a witness, and witnesses can lie. We quantify, not
@@ -584,6 +583,40 @@ the frozen attribution label; \emph{gold\_rerank} is oracle-assisted.}
 \label{fig:utility}
 \end{figure}
 
+\subsection{Probabilistic rule v2: selective abstention}
+\label{sec:v2result}
+Rule v2 was evaluated exactly once on test, pre-registered (D024):
+$k{=}5$ samples per condition at $T{=}0.7$, EM-loose per sample (no judge),
+$\tau_R{=}0.1$ reused, and $(\delta^*,\theta^*)$ tuned on dev only over
+$\delta\in\{0,\dots,0.4\}$, $\theta\in\{0.3,\dots,0.7\}$ with the
+pre-registered objective (selective accuracy $\to$ coverage $\to$
+macro-F1), yielding $\delta^*{=}0.0$, $\theta^*{=}0.3$.
+\textbf{Finding 1: at this operating point v2 never abstains}---coverage
+1.0 on both splits (0/61 test abstentions). With $T{=}0.7$ the per-condition
+samples are highly consistent, so the rates $p_i$ sit at 0 or 1: the Wald
+difference CI either excludes 0 or is moot, and $\theta$ fires on every
+item. Accuracy is 0.279 (macro-F1 0.162) versus v1's 0.312 (0.161)---a
+two-item difference that is not significant (McNemar exact $b{=}5$, $c{=}3$,
+$p{=}0.73$)---and on the activated-failure subset v2 is \emph{lower} (0.417
+versus v1's 0.528).
+\textbf{Finding 2: the confidence ordering nevertheless buys selective
+prediction} (Fig.~\ref{fig:riskcoverage}): abstaining post-hoc on the
+least-confident half of items (coverage 0.51) lifts answered accuracy from
+0.279 to 0.484, and the most confident quintile reaches 0.75. At $k{=}5$
+the abstention knob therefore does not engage---rate resolution is too
+coarse---and v2's demonstrated value is a usable confidence ranking rather
+than better labels; larger $k$ is the natural next step. All numbers from
+\texttt{results/exp03\_v2/eval.json} and \texttt{risk\_coverage.json}.
+\begin{figure}[t]
+\centering
+\includegraphics[width=.95\linewidth]{figures/risk_coverage.png}
+\caption{Risk--coverage curve for rule v2 on test (F4; from
+\texttt{results/exp03\_v2/risk\_coverage.json}): accuracy of answered
+items as low-confidence items are abstained; full coverage is v2's
+accuracy 0.279.}
+\label{fig:riskcoverage}
+\end{figure}
+
 \section{Analysis and Discussion}
 \label{sec:analysis}
 \textbf{(a) Activation is the first-class quantity.} Across both splits,
@@ -657,8 +690,10 @@ corpus-scale indexing; multi-model transfer is measured, cross-dataset
 generalization is not. (4) \emph{Gold requirement}: the core rule needs a
 gold reference; degradation experiments quantify but do not eliminate this.
 (5) \emph{Model drift}: API-hosted generators can change under us; manifests
-pin dates and model ids. (6) Rule v2's risk--coverage evaluation awaits
-$k$-sample data (cost-bound).
+pin dates and model ids. (6) \emph{Rule v2 resolution}: at $k{=}5$ the
+per-condition rates are 0 or 1, so CI separation never engaged abstention
+(coverage 1.0) and accuracy did not beat $k{=}1$ v1; larger-$k$ rate
+estimation is untested.
 
 \textbf{Ethics.} The benchmark reuses public QA data (no PII); faults are
 benign prompt/context manipulations, not jailbreaks. The intended use is
@@ -687,9 +722,10 @@ the failures of misapplied ones ($p_{\text{holm}}{=}1.1{\times}10^{-5}$)
 while a dominant single repair remains competitive---delimiting where
 attribution pays. The honest contribution
 is a measurement apparatus that makes such decomposition possible, plus
-quantified limits (gold-witness dependence, $k{=}1$ interaction blindness)
-rather than a leaderboard claim. Future work: $k$-sample v2 with
-risk--coverage, multi-chunk operating points for interaction faults,
+quantified limits (gold-witness dependence, $k{=}1$ interaction blindness,
+shallow-$k$ CI resolution)
+rather than a leaderboard claim. Future work: larger-$k$ v2 rate
+estimation, multi-chunk operating points for interaction faults,
 corpus-scale retrieval, cross-dataset transfer, and human-annotated
 natural-failure labels.
 
@@ -713,8 +749,9 @@ released repository.
 
 \subsection{Hyperparameters}
 $\tau_R$: dev-sweep $\{0.1,\dots,0.9\}$ maximizing dev macro-F1, frozen
-before test ($\tau_R{=}0.1$; flat sweep noted in Sec.~VI); v2:
-$\delta$, $\theta$ per \texttt{AttributionThresholds}; $\gamma$ (metric-rule
+before test ($\tau_R{=}0.1$; flat sweep noted in Sec.~VI); v2: $k{=}5$,
+$T{=}0.7$, $\delta^*{=}0.0$, $\theta^*{=}0.3$ dev-grid-tuned
+(Sec.~\ref{sec:v2result}); $\gamma$ (metric-rule
 grounding proxy) dev-tuned; bootstrap 10k, seed 0; judge-noise sweep
 200 trials/level, seeded.
 

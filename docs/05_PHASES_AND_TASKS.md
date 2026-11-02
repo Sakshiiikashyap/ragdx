@@ -13,7 +13,7 @@
 - [ ] O9 annotation guideline, sample natural failures, 2 annotators, kappa
 ## Phase 3 - Study (wk 5-8)
 - [ ] O8 baselines; exp03/exp04
-- [ ] O6 probabilistic version; risk-coverage
+- [x] O6 probabilistic version; risk-coverage — done live 2026-11-02 (exp03_v2, D024)
 - [ ] O10 robustness; O4 pseudo-gold
 ## Phase 4 - Generalize + utility (wk 8-10)
 - [ ] O11 exp07; O12 exp08
