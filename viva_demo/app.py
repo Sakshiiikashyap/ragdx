@@ -267,6 +267,14 @@ def screen_live() -> None:
     import os
     if str(SRC) not in sys.path:
         sys.path.insert(0, str(SRC))
+    # ragdx.llm.client runs load_dotenv() at import time, but that import
+    # only happens AFTER this key check - without an explicit load here the
+    # live screen would report "not set" on every launch (found 2026-11-04).
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(ROOT / ".env")
+    except Exception:
+        pass
     q = Prompt.ask("question").strip()
     if not q:
         return
